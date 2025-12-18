@@ -37,15 +37,25 @@ jobs:
 
       - name: Download previous OpenAPI spec (if exists)
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: openapi-spec
           path: .
           pattern: openapi-spec.previous.json
-          if-no-files-found: ignore
         id: download-previous
 
       - name: Detect route changes
-        run: npm run openapi:changes
+        run: |
+          # Verifica se existe spec anterior antes de comparar
+          if [ -f "openapi-spec.previous.json" ]; then
+            npm run openapi:changes
+          else
+            echo "📝 Primeira execução - todas as rotas serão consideradas novas"
+            # Copia spec atual como previous para próxima execução
+            cp openapi-spec.json openapi-spec.previous.json || true
+            # Gera relatório inicial
+            npm run openapi:changes || true
+          fi
         continue-on-error: true
 
       - name: Generate summary
@@ -93,22 +103,22 @@ jobs:
       - name: Upload OpenAPI specification
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: openapi-spec
           path: |
             openapi-spec.json
             openapi-spec.previous.json
           retention-days: 30
-          if-no-files-found: ignore
 
       - name: Upload route changes report
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: route-changes-report
           path: route-changes-report.md
           retention-days: 30
-          if-no-files-found: ignore
 
       - name: Comment PR with route changes
         if: github.event_name == 'pull_request' && always()
