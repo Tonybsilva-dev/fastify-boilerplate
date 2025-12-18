@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { Password, type PasswordHasher } from "../../../../../src/core/domain/value-objects/password";
+import {
+	Password,
+	type PasswordHasher,
+} from "../../../../../src/core/domain/value-objects/password";
 
 const fakeHasher: PasswordHasher = {
 	async hash(plain: string): Promise<string> {
@@ -30,9 +33,9 @@ describe("Password value object", () => {
 	});
 
 	it("should reject passwords shorter than 8 characters", async () => {
-		await expect(
-			Password.fromPlain("short", fakeHasher),
-		).rejects.toThrowError("Password must have at least 8 characters");
+		await expect(Password.fromPlain("short", fakeHasher)).rejects.toThrowError(
+			"Password must have at least 8 characters",
+		);
 	});
 
 	it("should verify a correct plain password against the stored hash", async () => {
@@ -51,5 +54,3 @@ describe("Password value object", () => {
 		);
 	});
 });
-
-

@@ -14,6 +14,7 @@ Cada seção traz os **objetivos**, **cenários de teste** e o **tipo de teste**
 ## 1. Entidade `User` e Enum `UserRole`
 
 ### Objetivo
+
 Garantir que a modelagem da entidade de domínio `User` e do enum `UserRole` representa corretamente os estados válidos de um usuário da aplicação.
 
 ### Casos de teste
@@ -38,6 +39,7 @@ Garantir que a modelagem da entidade de domínio `User` e do enum `UserRole` rep
 ## 2. Value Object `Password`
 
 ### Objetivo
+
 Assegurar que senhas em texto plano sejam sempre transformadas em hash por um `PasswordHasher`, que o hash nunca seja vazio e que a verificação (`verify`) funcione conforme esperado.
 
 ### Casos de teste
@@ -92,7 +94,9 @@ Assegurar que senhas em texto plano sejam sempre transformadas em hash por um `P
 ## 3. Schemas Zod de Usuário
 
 ### Objetivo
+
 Validar estrutura e regras de negócio básicas dos dados de usuário em três níveis:
+
 - Objeto completo de usuário (`userSchema`).
 - Payload de criação (`createUserSchema`).
 - Payload de atualização parcial (`updateUserSchema`).
@@ -165,6 +169,7 @@ Validar estrutura e regras de negócio básicas dos dados de usuário em três n
 ## 4. Pipeline de QA (Smoke Tests)
 
 ### Objetivo
+
 Garantir que a adição de novos testes e módulos de domínio não quebre o pipeline padrão de QA.
 
 ### Casos de teste
@@ -181,13 +186,63 @@ Garantir que a adição de novos testes e módulos de domínio não quebre o pip
 
 ---
 
-## 5. Próximos Passos de QA
+## 5. Repository Pattern para Testes
+
+### 5.1 Interface do Repositório
+
+**Arquivo**: `src/core/domain/repositories/user-repository.ts`
+
+- **Status**: ✅ Implementado
+- **Descrição**: Interface `UserRepository` define o contrato para persistência de usuários.
+- **Métodos**:
+  - `findById(id: string): Promise<User | null>`
+  - `findByEmail(email: string): Promise<User | null>`
+  - `create(user: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User>`
+  - `update(id: string, user: Partial<...>): Promise<User | null>`
+  - `delete(id: string): Promise<boolean>`
+
+### 5.2 Mock Repository
+
+**Arquivo**: `tests/unit/core/domain/repositories/mock-user-repository.ts`
+
+- **Status**: ✅ Implementado
+- **Descrição**: Implementação mock do `UserRepository` usando `Map` em memória.
+- **Funcionalidades**:
+  - Armazena usuários em memória durante execução dos testes.
+  - Implementa todos os métodos da interface `UserRepository`.
+  - Métodos auxiliares para testes: `clear()`, `getAll()`, `count()`.
+
+### 5.3 Testes do Mock Repository
+
+**Arquivo**: `tests/unit/core/domain/repositories/mock-user-repository.spec.ts`
+
+- **Status**: ✅ Implementado
+- **Cenários testados**:
+  - ✅ Criação de usuário com geração automática de `id`, `createdAt`, `updatedAt`.
+  - ✅ Busca por ID (sucesso e não encontrado).
+  - ✅ Busca por email (sucesso e não encontrado).
+  - ✅ Atualização de usuário (sucesso e não encontrado).
+  - ✅ Deleção de usuário (sucesso e não encontrado).
+  - ✅ Métodos auxiliares (`clear`, `getAll`, `count`).
+
+### 5.4 Benefícios do Padrão Repository nos Testes
+
+- **Isolamento**: Testes de casos de uso não dependem de infraestrutura real (DB, APIs).
+- **Determinismo**: Comportamento previsível e controlável.
+- **Performance**: Testes rápidos sem I/O de banco de dados.
+- **Flexibilidade**: Fácil simular cenários específicos (erros, edge cases).
+- **Manutenibilidade**: Mudanças na infraestrutura não quebram testes unitários.
+
+---
+
+## 6. Próximos Passos de QA
 
 - Adicionar testes unitários específicos para a integração entre:
   - `Password` e futura infra de hash real (ex.: bcrypt).
   - Schemas Zod e camada HTTP (validação de body/query/params).
 - Expandir cobertura de testes para:
   - Hierarquia de erros (`AppError`, `ValidationError`, `AuthError`, etc.).
-  - Casos de uso de autenticação quando forem implementados.
-
-
+  - Casos de uso de autenticação quando forem implementados (usando `MockUserRepository`).
+- Criar mocks adicionais conforme necessário:
+  - `MockTokenProvider` para testes de JWT.
+  - `MockPasswordHasher` para testes de hash (se necessário).

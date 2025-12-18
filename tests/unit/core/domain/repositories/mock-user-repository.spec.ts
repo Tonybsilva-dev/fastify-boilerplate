@@ -1,0 +1,160 @@
+import { describe, expect, it, beforeEach } from "vitest";
+import { MockUserRepository } from "./mock-user-repository";
+import { UserRole } from "../../../../../src/core/domain/entities/user";
+
+describe("MockUserRepository", () => {
+	let repository: MockUserRepository;
+
+	beforeEach(() => {
+		repository = new MockUserRepository();
+	});
+
+	it("should create a user", async () => {
+		const userData = {
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		};
+
+		const user = await repository.create(userData);
+
+		expect(user.id).toBeDefined();
+		expect(user.name).toBe(userData.name);
+		expect(user.email).toBe(userData.email);
+		expect(user.createdAt).toBeInstanceOf(Date);
+		expect(user.updatedAt).toBeInstanceOf(Date);
+	});
+
+	it("should find user by id", async () => {
+		const user = await repository.create({
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		});
+
+		const found = await repository.findById(user.id);
+
+		expect(found).not.toBeNull();
+		expect(found?.id).toBe(user.id);
+	});
+
+	it("should return null when user not found by id", async () => {
+		const found = await repository.findById("non-existent-id");
+		expect(found).toBeNull();
+	});
+
+	it("should find user by email", async () => {
+		const user = await repository.create({
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		});
+
+		const found = await repository.findByEmail(user.email);
+
+		expect(found).not.toBeNull();
+		expect(found?.email).toBe(user.email);
+	});
+
+	it("should return null when user not found by email", async () => {
+		const found = await repository.findByEmail("notfound@example.com");
+		expect(found).toBeNull();
+	});
+
+	it("should update a user", async () => {
+		const user = await repository.create({
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		});
+
+		const updated = await repository.update(user.id, {
+			name: "Jane Doe",
+		});
+
+		expect(updated).not.toBeNull();
+		expect(updated?.name).toBe("Jane Doe");
+		expect(updated?.email).toBe(user.email);
+		expect(updated?.updatedAt.getTime()).toBeGreaterThanOrEqual(
+			user.updatedAt.getTime(),
+		);
+	});
+
+	it("should return null when updating non-existent user", async () => {
+		const updated = await repository.update("non-existent-id", {
+			name: "Jane Doe",
+		});
+
+		expect(updated).toBeNull();
+	});
+
+	it("should delete a user", async () => {
+		const user = await repository.create({
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		});
+
+		const deleted = await repository.delete(user.id);
+
+		expect(deleted).toBe(true);
+		const found = await repository.findById(user.id);
+		expect(found).toBeNull();
+	});
+
+	it("should return false when deleting non-existent user", async () => {
+		const deleted = await repository.delete("non-existent-id");
+		expect(deleted).toBe(false);
+	});
+
+	it("should clear all users", () => {
+		repository.create({
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		});
+
+		repository.clear();
+
+		expect(repository.count()).toBe(0);
+	});
+
+	it("should return all users", async () => {
+		await repository.create({
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		});
+
+		await repository.create({
+			name: "Jane Doe",
+			email: "jane@example.com",
+			passwordHash: "hashed:password2",
+			role: UserRole.ADMIN,
+		});
+
+		const all = repository.getAll();
+
+		expect(all.length).toBe(2);
+	});
+
+	it("should count users", async () => {
+		expect(repository.count()).toBe(0);
+
+		await repository.create({
+			name: "John Doe",
+			email: "john@example.com",
+			passwordHash: "hashed:password",
+			role: UserRole.USER,
+		});
+
+		expect(repository.count()).toBe(1);
+	});
+});

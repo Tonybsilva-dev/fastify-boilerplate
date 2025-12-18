@@ -169,6 +169,12 @@ As equipes da agência precisam criar backends Node/TypeScript para diferentes c
 - **Outputs**: Funções `makeUser`, `makeAuthToken`, `makePaginationRequest`, etc.
 - **Behavior**: Reduz duplicação, deixando os testes mais legíveis e fáceis de manter.
 
+#### Feature: Repository pattern para testes
+- **Description**: Implementar mocks de repositórios seguindo o padrão Repository para isolar testes de casos de uso e serviços de domínio.
+- **Inputs**: Interfaces de repositório definidas no domínio (ex.: `UserRepository`).
+- **Outputs**: Classes mock como `MockUserRepository` que implementam as interfaces e permitem controle total sobre dados de teste.
+- **Behavior**: Facilita testes unitários de casos de uso sem dependência de infraestrutura real (DB, APIs externas), permitindo simular cenários específicos (usuário não encontrado, duplicação de email, etc.) de forma determinística e rápida.
+
 #### Feature: Pipeline de QA (lint, format, tests)
 - **Description**: Unificar scripts de lint, format e testes (incluindo testes em arquivos alterados) em um comando de QA.
 - **Inputs**: Biome, Vitest, Husky, lint-staged.

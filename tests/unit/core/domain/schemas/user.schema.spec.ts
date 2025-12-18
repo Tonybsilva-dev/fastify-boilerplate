@@ -63,6 +63,7 @@ describe("createUserSchema", () => {
 			name: "John Doe",
 			email: "john@example.com",
 			password: "super-secret",
+			role: UserRole.USER,
 		});
 
 		expect(result.success).toBe(true);
@@ -95,5 +96,3 @@ describe("updateUserSchema", () => {
 		expect(result.success).toBe(false);
 	});
 });
-
-

@@ -305,8 +305,9 @@ Adicionar no `package.json`:
 {
   "scripts": {
     "test": "vitest",
-    "test:unit": "vitest run src --dir tests/unit",
-    "test:integration": "vitest run src --dir tests/integration"
+    "test:ui": "vitest --ui",
+    "test:changed": "vitest related --changed --run",
+    "test:coverage": "vitest run --coverage"
   }
 }
 ```
@@ -314,8 +315,23 @@ Adicionar no `package.json`:
 Criar arquivo de config `vitest.config.ts` com:
 
 - `testEnvironment`: `node`.
+- `include`: `["tests/**/*.{test,spec}.{js,ts}"]` - define quais arquivos serão testados.
+- `exclude`: lista de pastas/arquivos a ignorar (node_modules, dist, configs, etc.).
+- `coverage`: configuração de cobertura de código:
+  - `provider`: `"v8"` - usa o provider v8 para coverage.
+  - `reporter`: `["text", "json", "html"]` - formatos de relatório.
+  - `exclude`: arquivos/pastas a excluir do coverage (tests, configs, docs, index.ts, etc.).
+  - `include`: `["src/**/*.{js,ts}"]` - apenas código fonte em `src/`.
+  - `thresholds`: limites mínimos de cobertura (lines: 80%, functions: 80%, branches: 75%, statements: 80%).
 - Paths de alias se necessário.
 - Setup para limpar DB entre testes de integração (se tiver DB).
+
+**Scripts disponíveis:**
+
+- `npm test` - roda testes em modo watch.
+- `npm run test:ui` - abre interface gráfica do Vitest para visualizar e debugar testes.
+- `npm run test:changed` - roda apenas testes relacionados a arquivos modificados (usado no QA).
+- `npm run test:coverage` - gera relatório de cobertura de código.
 
 ### 11.2 Factory pattern para testes
 
@@ -324,6 +340,54 @@ Criar `tests/factories/` com fábricas para entidades e objetos comuns:
 - `makeUser`, `makeAuthToken`, `makePaginationRequest`, etc.
 
 Objetivo: reduzir duplicação e tornar testes mais legíveis.
+
+### 11.3 Repository pattern para testes
+
+Implementar mocks de repositórios seguindo o padrão Repository para isolar testes de casos de uso e serviços de domínio.
+
+**Estrutura sugerida:**
+
+```text
+src/core/domain/repositories/
+  └── user-repository.ts          # Interface do repositório
+
+tests/unit/core/domain/repositories/
+  ├── mock-user-repository.ts     # Implementação mock
+  └── mock-user-repository.spec.ts # Testes do mock
+```
+
+**Exemplo de interface:**
+
+```typescript
+export interface UserRepository {
+  findById(id: string): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+  create(user: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User>;
+  update(id: string, user: Partial<...>): Promise<User | null>;
+  delete(id: string): Promise<boolean>;
+}
+```
+
+**Exemplo de mock:**
+
+```typescript
+export class MockUserRepository implements UserRepository {
+  private users: Map<string, User> = new Map();
+  
+  async findById(id: string): Promise<User | null> {
+    return this.users.get(id) ?? null;
+  }
+  
+  // ... implementar outros métodos
+}
+```
+
+**Benefícios:**
+
+- Isola testes de casos de uso sem dependência de infraestrutura real (DB, APIs).
+- Permite simular cenários específicos (usuário não encontrado, duplicação de email, etc.).
+- Testes determinísticos e rápidos.
+- Facilita testes de edge cases e erros.
 
 ---
 

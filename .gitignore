@@ -24,4 +24,7 @@ node_modules/
 # OS specific
 .DS_Store
 
+# Coverage
+coverage/
+
 .taskmaster

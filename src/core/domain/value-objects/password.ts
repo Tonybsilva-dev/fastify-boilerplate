@@ -34,5 +34,3 @@ export class Password {
 		return hasher.compare(plain, this.value);
 	}
 }
-
-
