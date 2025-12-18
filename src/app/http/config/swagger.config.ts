@@ -59,7 +59,6 @@ export function getSwaggerConfig() {
 			}
 		: undefined;
 
-	// biome-ignore lint/suspicious/noExplicitAny: Necessário para compatibilidade com tipos do Fastify Swagger
 	return {
 		openapi: {
 			openapi: '3.1.0',
@@ -97,7 +96,6 @@ export function getSwaggerConfig() {
 					description: 'Informações gerais da API e endpoints raiz',
 				},
 			],
-			// biome-ignore lint/suspicious/noExplicitAny: Schemas complexos do OpenAPI
 			components: {
 				securitySchemes: {
 					bearerAuth: {

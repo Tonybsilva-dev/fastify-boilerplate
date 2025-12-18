@@ -1,10 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { createUserSchema } from '../../../core/domain/schemas/user.schema';
 import {
 	createRequestSchema,
 	createResponseSchema,
 } from '../../../shared/utils/zod-to-json-schema';
-import { createUserSchema } from '../../../core/domain/schemas/user.schema';
 
 // Exemplo de schemas para query e params
 const getUserQuerySchema = z.object({

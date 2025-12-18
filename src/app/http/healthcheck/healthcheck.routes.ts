@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { createResponseSchema } from '../../../shared/utils/zod-to-json-schema';
 import { env } from '../../../shared/env';
+import { createResponseSchema } from '../../../shared/utils/zod-to-json-schema';
 
 const healthResponseSchema = z.object({
 	status: z.literal('ok'),

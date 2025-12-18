@@ -4,9 +4,9 @@
  * Usado pela GitHub Action para detectar mudanças nas rotas
  */
 
-import { build } from '../src/app/http/server';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { build } from '../src/app/http/server';
 
 async function generateOpenAPISpec() {
 	try {
