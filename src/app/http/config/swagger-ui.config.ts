@@ -1,5 +1,4 @@
 import type { FastifySwaggerUiOptions } from '@fastify/swagger-ui';
-import { env } from '../../../shared/env';
 
 /**
  * Configuração do Swagger UI com opções profissionais
@@ -20,16 +19,16 @@ export function getSwaggerUIConfig(): FastifySwaggerUiOptions {
 			tryItOutEnabled: true,
 		},
 		uiHooks: {
-			onRequest: function (request, reply, next) {
+			onRequest: (_request, _reply, next) => {
 				next();
 			},
-			preHandler: function (request, reply, next) {
+			preHandler: (_request, _reply, next) => {
 				next();
 			},
 		},
 		staticCSP: true,
 		transformStaticCSP: (header) => header,
-		transformSpecification: (swaggerObject, request, reply) => {
+		transformSpecification: (swaggerObject, _request, _reply) => {
 			// Permite transformar a especificação antes de exibir
 			return swaggerObject;
 		},

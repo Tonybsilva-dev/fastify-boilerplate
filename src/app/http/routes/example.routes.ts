@@ -55,7 +55,7 @@ export async function exampleRoutes(fastify: FastifyInstance) {
 		async (request) => {
 			// TypeScript sabe os tipos automaticamente!
 			const { id } = request.params;
-			const { includeDeleted } = request.query;
+			// const { includeDeleted } = request.query; // TODO: usar quando implementar lógica
 
 			// TODO: Implementar lógica real
 			return {
@@ -97,7 +97,8 @@ export async function exampleRoutes(fastify: FastifyInstance) {
 		},
 		async (request) => {
 			// TypeScript valida automaticamente o body!
-			const { name, email, password, role } = request.body;
+			const { name, email, role } = request.body;
+			// const { password } = request.body; // TODO: usar quando implementar hash
 
 			// TODO: Implementar lógica real
 			return {

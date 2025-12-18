@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createResponseSchema } from '../../../shared/utils/zod-to-json-schema';
 import { env } from '../../../shared/env';

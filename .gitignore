@@ -28,3 +28,8 @@ node_modules/
 coverage/
 
 .taskmaster
+
+# OpenAPI specs (gerados automaticamente)
+openapi-spec.json
+openapi-spec.previous.json
+route-changes-report.md

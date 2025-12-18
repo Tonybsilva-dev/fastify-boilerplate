@@ -1,0 +1,142 @@
+name: API Routes Snapshot
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  detect-route-changes:
+    name: Detect API Route Changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for comparison
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Generate OpenAPI specification
+        run: npm run openapi:generate
+        continue-on-error: true
+
+      - name: Download previous OpenAPI spec (if exists)
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-spec
+          path: .
+          pattern: openapi-spec.previous.json
+          if-no-files-found: ignore
+        id: download-previous
+
+      - name: Detect route changes
+        run: npm run openapi:changes
+        continue-on-error: true
+
+      - name: Generate summary
+        run: |
+          echo "## 📊 Mudanças nas Rotas da API" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "route-changes-report.md" ]; then
+            # Extrair resumo do relatório
+            if grep -q "Nenhuma mudança detectada" route-changes-report.md; then
+              echo "✅ **Nenhuma mudança detectada nas rotas.**" >> $GITHUB_STEP_SUMMARY
+            else
+              # Extrair seções do relatório
+              echo "### Resumo" >> $GITHUB_STEP_SUMMARY
+              grep -A 4 "## 📈 Resumo" route-changes-report.md | tail -n +2 >> $GITHUB_STEP_SUMMARY || true
+              echo "" >> $GITHUB_STEP_SUMMARY
+
+              # Mostrar rotas adicionadas
+              if grep -q "## ➕ Rotas Adicionadas" route-changes-report.md; then
+                echo "### ➕ Rotas Adicionadas" >> $GITHUB_STEP_SUMMARY
+                grep -A 1 "### \`" route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+
+              # Mostrar rotas removidas
+              if grep -q "## ➖ Rotas Removidas" route-changes-report.md; then
+                echo "### ➖ Rotas Removidas" >> $GITHUB_STEP_SUMMARY
+                grep -A 1 "### \`" route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+
+              # Mostrar rotas modificadas
+              if grep -q "## 🔄 Rotas Modificadas" route-changes-report.md; then
+                echo "### 🔄 Rotas Modificadas" >> $GITHUB_STEP_SUMMARY
+                grep -A 1 "### \`" route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+
+              echo "📄 **Relatório completo disponível nos artifacts**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ Não foi possível gerar o relatório de mudanças." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload OpenAPI specification
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openapi-spec
+          path: |
+            openapi-spec.json
+            openapi-spec.previous.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload route changes report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route-changes-report
+          path: route-changes-report.md
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Comment PR with route changes
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            try {
+              const reportPath = path.join(process.cwd(), 'route-changes-report.md');
+              
+              if (fs.existsSync(reportPath)) {
+                const report = fs.readFileSync(reportPath, 'utf-8');
+                
+                // Verificar se há mudanças
+                if (!report.includes('Nenhuma mudança detectada')) {
+                  const body = `## 📊 Mudanças nas Rotas da API\n\n${report}\n\n---\n\n*Este relatório foi gerado automaticamente pela GitHub Action.*`;
+                  
+                  github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: body
+                  });
+                }
+              }
+            } catch (error) {
+              console.log('Não foi possível comentar no PR:', error.message);
+            }
+
