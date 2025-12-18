@@ -1,4 +1,6 @@
 import { env } from '../../../shared/env';
+import { pageRequestSchema } from '../../../shared/pagination';
+import { zodToJsonSchemaFastify } from '../../../shared/utils/zod-to-json-schema';
 
 /**
  * Configuração completa e profissional do Swagger/OpenAPI
@@ -240,56 +242,39 @@ export function getSwaggerConfig() {
 							},
 						},
 					},
-					PageRequest: {
-						type: 'object' as const,
-						properties: {
-							page: {
-								type: 'integer',
-								minimum: 1,
-								default: 1,
-								description: 'Número da página',
-							},
-							perPage: {
-								type: 'integer',
-								minimum: 1,
-								maximum: 100,
-								default: 10,
-								description: 'Itens por página',
-							},
-							sort: {
-								type: 'string',
-								description: 'Campo para ordenação (ex: "createdAt:desc")',
-							},
-							filter: {
-								type: 'string',
-								description:
-									'Filtros adicionais (formato específico por endpoint)',
-							},
-						},
-					},
+					PageRequest: zodToJsonSchemaFastify(pageRequestSchema, {
+						name: 'PageRequest',
+						description: 'Parâmetros de paginação para requisições',
+					}),
 					PageResponse: {
 						type: 'object' as const,
-						required: ['items', 'total', 'page', 'perPage'],
+						required: ['items', 'total', 'page', 'perPage', 'totalPages'],
 						properties: {
 							items: {
 								type: 'array',
-								description: 'Lista de itens da página',
+								description: 'Lista de itens da página atual',
+								items: {},
 							},
 							total: {
 								type: 'integer',
 								description: 'Total de itens disponíveis',
+								minimum: 0,
 							},
 							page: {
 								type: 'integer',
-								description: 'Página atual',
+								description: 'Número da página atual',
+								minimum: 1,
 							},
 							perPage: {
 								type: 'integer',
-								description: 'Itens por página',
+								description: 'Quantidade de itens por página',
+								minimum: 1,
+								maximum: 100,
 							},
 							totalPages: {
 								type: 'integer',
-								description: 'Total de páginas',
+								description: 'Total de páginas disponíveis',
+								minimum: 0,
 							},
 						},
 					},
