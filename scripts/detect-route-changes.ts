@@ -4,8 +4,8 @@
  * Gera um relatório detalhado das mudanças
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 interface RouteInfo {
 	method: string;
@@ -24,6 +24,7 @@ interface RouteChanges {
 	}>;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: OpenAPI spec pode ter estrutura variável
 function extractRoutes(spec: any): RouteInfo[] {
 	const routes: RouteInfo[] = [];
 
@@ -45,6 +46,7 @@ function extractRoutes(spec: any): RouteInfo[] {
 				continue;
 			}
 
+			// biome-ignore lint/suspicious/noExplicitAny: OpenAPI operation pode ter estrutura variável
 			const op = operation as any;
 			routes.push({
 				method: method.toUpperCase(),

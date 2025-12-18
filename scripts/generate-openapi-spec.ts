@@ -5,8 +5,8 @@
  */
 
 import { build } from '../src/app/http/server';
-import { writeFileSync } from 'fs';
-import { join } from 'path';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 async function generateOpenAPISpec() {
 	try {
