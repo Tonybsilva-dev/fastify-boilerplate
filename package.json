@@ -1,0 +1,46 @@
+{
+	"name": "fastify-boilerplate",
+	"version": "1.0.0",
+	"description": "Boilerplate de API usando Fastify.",
+	"main": "index.js",
+	"scripts": {
+		"test": "vitest",
+		"test:changed": "vitest related --changed --run",
+		"lint": "biome lint .",
+		"format": "biome format . --write",
+		"check": "biome check .",
+		"build:check": "tsc --noEmit",
+		"qa": "npm run lint && npm run format && npm run test:changed && npm run build:check",
+		"prepare": "husky"
+	},
+	"keywords": [
+		"fastify",
+		"api",
+		"boilerplate"
+	],
+	"author": "Antonio Silva <contato@antonbiobsilva.com.br>",
+	"license": "ISC",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Tonybsilva-dev/fastify-boilerplate.git"
+	},
+	"homepage": "https://github.com/Tonybsilva-dev/fastify-boilerplate#readme",
+	"bugs": {
+		"url": "https://github.com/Tonybsilva-dev/fastify-boilerplate/issues"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.10",
+		"@commitlint/cli": "^20.2.0",
+		"@commitlint/config-conventional": "^20.2.0",
+		"@types/node": "^25.0.3",
+		"@vitest/coverage-v8": "^4.0.16",
+		"cross-env": "^10.1.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
+		"npm-check-updates": "^19.2.0",
+		"ts-node": "^10.9.2",
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.3",
+		"vitest": "^3.2.4"
+	}
+}
