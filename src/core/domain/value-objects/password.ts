@@ -8,7 +8,7 @@ export class Password {
 
 	static fromHash(hash: string): Password {
 		if (!hash.trim()) {
-			throw new Error("Password hash must not be empty");
+			throw new Error('Password hash must not be empty');
 		}
 
 		return new Password(hash);
@@ -19,7 +19,7 @@ export class Password {
 		hasher: PasswordHasher,
 	): Promise<Password> {
 		if (plain.length < 8) {
-			throw new Error("Password must have at least 8 characters");
+			throw new Error('Password must have at least 8 characters');
 		}
 
 		const hash = await hasher.hash(plain);

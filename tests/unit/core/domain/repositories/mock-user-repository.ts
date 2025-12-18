@@ -1,5 +1,5 @@
-import type { User } from "../../../../../src/core/domain/entities/user";
-import type { UserRepository } from "../../../../../src/core/domain/repositories/user-repository";
+import type { User } from '../../../../../src/core/domain/entities/user';
+import type { UserRepository } from '../../../../../src/core/domain/repositories/user-repository';
 
 export class MockUserRepository implements UserRepository {
 	private users: Map<string, User> = new Map();
@@ -18,7 +18,7 @@ export class MockUserRepository implements UserRepository {
 	}
 
 	async create(
-		userData: Omit<User, "id" | "createdAt" | "updatedAt">,
+		userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>,
 	): Promise<User> {
 		const now = new Date();
 		const user: User = {
@@ -33,7 +33,7 @@ export class MockUserRepository implements UserRepository {
 
 	async update(
 		id: string,
-		userData: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>,
+		userData: Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt'>>,
 	): Promise<User | null> {
 		const existing = this.users.get(id);
 		if (!existing) {

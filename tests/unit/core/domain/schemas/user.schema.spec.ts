@@ -1,20 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
+import { UserRole } from '../../../../../src/core/domain/entities/user';
 import {
 	createUserSchema,
 	updateUserSchema,
 	userSchema,
-} from "../../../../../src/core/domain/schemas/user.schema";
-import { UserRole } from "../../../../../src/core/domain/entities/user";
+} from '../../../../../src/core/domain/schemas/user.schema';
 
-describe("userSchema", () => {
-	it("should validate a valid user object", () => {
+describe('userSchema', () => {
+	it('should validate a valid user object', () => {
 		const now = new Date();
 
 		const result = userSchema.safeParse({
-			id: "1e02e2b8-8ab8-4aa0-9a46-3c2b0bbf5b1b",
-			name: "John Doe",
-			email: "john@example.com",
-			passwordHash: "hashed:super-secret",
+			id: '1e02e2b8-8ab8-4aa0-9a46-3c2b0bbf5b1b',
+			name: 'John Doe',
+			email: 'john@example.com',
+			passwordHash: 'hashed:super-secret',
 			role: UserRole.USER,
 			createdAt: now,
 			updatedAt: now,
@@ -23,14 +23,14 @@ describe("userSchema", () => {
 		expect(result.success).toBe(true);
 	});
 
-	it("should reject invalid email", () => {
+	it('should reject invalid email', () => {
 		const now = new Date();
 
 		const result = userSchema.safeParse({
-			id: "1e02e2b8-8ab8-4aa0-9a46-3c2b0bbf5b1b",
-			name: "John Doe",
-			email: "not-an-email",
-			passwordHash: "hashed:super-secret",
+			id: '1e02e2b8-8ab8-4aa0-9a46-3c2b0bbf5b1b',
+			name: 'John Doe',
+			email: 'not-an-email',
+			passwordHash: 'hashed:super-secret',
 			role: UserRole.USER,
 			createdAt: now,
 			updatedAt: now,
@@ -39,16 +39,16 @@ describe("userSchema", () => {
 		expect(result.success).toBe(false);
 	});
 
-	it("should reject invalid role", () => {
+	it('should reject invalid role', () => {
 		const now = new Date();
 
 		// @ts-expect-error testing runtime validation
 		const result = userSchema.safeParse({
-			id: "1e02e2b8-8ab8-4aa0-9a46-3c2b0bbf5b1b",
-			name: "John Doe",
-			email: "john@example.com",
-			passwordHash: "hashed:super-secret",
-			role: "ROLE_MANAGER",
+			id: '1e02e2b8-8ab8-4aa0-9a46-3c2b0bbf5b1b',
+			name: 'John Doe',
+			email: 'john@example.com',
+			passwordHash: 'hashed:super-secret',
+			role: 'ROLE_MANAGER',
 			createdAt: now,
 			updatedAt: now,
 		});
@@ -57,40 +57,40 @@ describe("userSchema", () => {
 	});
 });
 
-describe("createUserSchema", () => {
-	it("should require password and omit system fields", () => {
+describe('createUserSchema', () => {
+	it('should require password and omit system fields', () => {
 		const result = createUserSchema.safeParse({
-			name: "John Doe",
-			email: "john@example.com",
-			password: "super-secret",
+			name: 'John Doe',
+			email: 'john@example.com',
+			password: 'super-secret',
 			role: UserRole.USER,
 		});
 
 		expect(result.success).toBe(true);
 	});
 
-	it("should fail when password is missing", () => {
+	it('should fail when password is missing', () => {
 		const result = createUserSchema.safeParse({
-			name: "John Doe",
-			email: "john@example.com",
+			name: 'John Doe',
+			email: 'john@example.com',
 		});
 
 		expect(result.success).toBe(false);
 	});
 });
 
-describe("updateUserSchema", () => {
-	it("should accept a partial payload", () => {
+describe('updateUserSchema', () => {
+	it('should accept a partial payload', () => {
 		const result = updateUserSchema.safeParse({
-			name: "Updated Name",
+			name: 'Updated Name',
 		});
 
 		expect(result.success).toBe(true);
 	});
 
-	it("should still validate field formats on partial payload", () => {
+	it('should still validate field formats on partial payload', () => {
 		const result = updateUserSchema.safeParse({
-			email: "not-an-email",
+			email: 'not-an-email',
 		});
 
 		expect(result.success).toBe(false);

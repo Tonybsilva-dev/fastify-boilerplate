@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { UserRole } from "../entities/user";
+import { z } from 'zod';
+import { UserRole } from '../entities/user';
 
 export const userSchema = z.object({
 	id: z.string().uuid(),
