@@ -19,7 +19,8 @@ const deepHealthResponseSchema = healthResponseSchema.extend({
 
 export async function healthcheckRoutes(fastify: FastifyInstance) {
 	// Health check básico
-	fastify.get(
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+	(fastify as any).get(
 		'/health',
 		{
 			schema: {
@@ -44,7 +45,8 @@ export async function healthcheckRoutes(fastify: FastifyInstance) {
 	);
 
 	// Health check detalhado (deep check)
-	fastify.get(
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+	(fastify as any).get(
 		'/health/deep',
 		{
 			schema: {

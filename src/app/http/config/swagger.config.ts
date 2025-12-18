@@ -95,6 +95,11 @@ export function getSwaggerConfig() {
 					name: 'root',
 					description: 'Informações gerais da API e endpoints raiz',
 				},
+				{
+					name: 'errors',
+					description:
+						'Endpoints de exemplo para demonstrar tratamento de erros estruturado (apenas em desenvolvimento)',
+				},
 			],
 			components: {
 				securitySchemes: {

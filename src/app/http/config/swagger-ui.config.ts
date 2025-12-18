@@ -19,10 +19,10 @@ export function getSwaggerUIConfig(): FastifySwaggerUiOptions {
 			tryItOutEnabled: true,
 		},
 		uiHooks: {
-			onRequest: (_request, _reply, next) => {
+			onRequest: (_request: unknown, _reply: unknown, next: () => void) => {
 				next();
 			},
-			preHandler: (_request, _reply, next) => {
+			preHandler: (_request: unknown, _reply: unknown, next: () => void) => {
 				next();
 			},
 		},

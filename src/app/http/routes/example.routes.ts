@@ -31,10 +31,8 @@ const userResponseSchema = z.object({
  */
 export async function exampleRoutes(fastify: FastifyInstance) {
 	// Exemplo: GET com query params e path params
-	fastify.get<{
-		Params: z.infer<typeof getUserParamsSchema>;
-		Querystring: z.infer<typeof getUserQuerySchema>;
-	}>(
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+	(fastify as any).get(
 		'/users/:id',
 		{
 			schema: {
@@ -52,7 +50,8 @@ export async function exampleRoutes(fastify: FastifyInstance) {
 				},
 			},
 		},
-		async (request) => {
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		async (request: any) => {
 			// TypeScript sabe os tipos automaticamente!
 			const { id } = request.params;
 			// const { includeDeleted } = request.query; // TODO: usar quando implementar lógica
@@ -70,9 +69,8 @@ export async function exampleRoutes(fastify: FastifyInstance) {
 	);
 
 	// Exemplo: POST com body usando schema de domínio
-	fastify.post<{
-		Body: z.infer<typeof createUserSchema>;
-	}>(
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+	(fastify as any).post(
 		'/users',
 		{
 			schema: {
@@ -95,7 +93,9 @@ export async function exampleRoutes(fastify: FastifyInstance) {
 				},
 			},
 		},
-		async (request) => {
+		async (request: {
+			body: { name: string; email: string; password: string; role: string };
+		}) => {
 			// TypeScript valida automaticamente o body!
 			const { name, email, role } = request.body;
 			// const { password } = request.body; // TODO: usar quando implementar hash

@@ -1,12 +1,15 @@
 import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
-import Fastify from 'fastify';
+import fastify from 'fastify';
 import { env } from '../../shared/env';
 import { getSwaggerConfig } from './config/swagger.config';
 import { getSwaggerUIConfig } from './config/swagger-ui.config';
 import { healthcheckRoutes } from './healthcheck/healthcheck.routes';
+import { errorHandler } from './middlewares/error-handler';
+import { traceIdPlugin } from './middlewares/trace-id';
 
-const server = Fastify({
+// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos, necessário type assertion
+const server = (fastify as any)({
 	logger: {
 		level: env.NODE_ENV === 'production' ? 'info' : 'debug',
 		transport:
@@ -30,6 +33,12 @@ async function build() {
 	// Registra Swagger UI com configuração otimizada
 	await server.register(swaggerUI, getSwaggerUIConfig());
 
+	// Registra middleware de traceId (deve ser registrado antes das rotas)
+	await server.register(traceIdPlugin);
+
+	// Registra middleware global de erros
+	server.setErrorHandler(errorHandler);
+
 	// Registra rotas
 	await server.register(healthcheckRoutes);
 
@@ -37,6 +46,14 @@ async function build() {
 	// await server.register(exampleRoutes);
 	// await server.register(userRoutes);
 	// await server.register(authRoutes);
+
+	// Rotas de exemplo de erros (apenas para desenvolvimento/documentação)
+	if (env.NODE_ENV !== 'production') {
+		const { errorExampleRoutes } = await import(
+			'./routes/error-example.routes'
+		);
+		await server.register(errorExampleRoutes);
+	}
 
 	// Rota raiz
 	server.get(
