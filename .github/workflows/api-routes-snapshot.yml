@@ -31,30 +31,54 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-      - name: Generate OpenAPI specification
-        run: npm run openapi:generate
-        continue-on-error: true
-
       - name: Download previous OpenAPI spec (if exists)
+        id: download-previous
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           name: openapi-spec
           path: .
-          pattern: openapi-spec.previous.json
-        id: download-previous
+          if-no-files-found: ignore
+
+      - name: Generate OpenAPI specification
+        id: generate-spec
+        run: |
+          echo "🔧 Gerando especificação OpenAPI..."
+          npm run openapi:generate
+          
+          if [ ! -f "openapi-spec.json" ]; then
+            echo "❌ Erro: openapi-spec.json não foi gerado"
+            exit 1
+          fi
+          
+          echo "✅ OpenAPI spec gerada com sucesso"
+          ls -lh openapi-spec.json
+          
+          # Se não existe spec anterior, copia a atual como previous para próxima execução
+          if [ ! -f "openapi-spec.previous.json" ]; then
+            echo "📝 Primeira execução - copiando spec atual como previous"
+            cp openapi-spec.json openapi-spec.previous.json
+          else
+            echo "✅ Spec anterior encontrada para comparação"
+          fi
 
       - name: Detect route changes
+        id: detect-changes
         run: |
-          # Verifica se existe spec anterior antes de comparar
-          if [ -f "openapi-spec.previous.json" ]; then
-            npm run openapi:changes
+          if [ ! -f "openapi-spec.json" ]; then
+            echo "❌ Erro: openapi-spec.json não encontrado"
+            exit 1
+          fi
+          
+          echo "🔍 Detectando mudanças nas rotas..."
+          npm run openapi:changes
+          
+          if [ -f "src/docs/route-changes-report.md" ]; then
+            echo "✅ Relatório de mudanças gerado"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "📝 Primeira execução - todas as rotas serão consideradas novas"
-            # Copia spec atual como previous para próxima execução
-            cp openapi-spec.json openapi-spec.previous.json || true
-            # Gera relatório inicial
-            npm run openapi:changes || true
+            echo "⚠️ Relatório não foi gerado"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
         continue-on-error: true
 
@@ -63,34 +87,34 @@ jobs:
           echo "## 📊 Mudanças nas Rotas da API" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ -f "route-changes-report.md" ]; then
+          if [ -f "src/docs/route-changes-report.md" ]; then
             # Extrair resumo do relatório
-            if grep -q "Nenhuma mudança detectada" route-changes-report.md; then
+            if grep -q "Nenhuma mudança detectada" src/docs/route-changes-report.md; then
               echo "✅ **Nenhuma mudança detectada nas rotas.**" >> $GITHUB_STEP_SUMMARY
             else
               # Extrair seções do relatório
               echo "### Resumo" >> $GITHUB_STEP_SUMMARY
-              grep -A 4 "## 📈 Resumo" route-changes-report.md | tail -n +2 >> $GITHUB_STEP_SUMMARY || true
+              grep -A 4 "## 📈 Resumo" src/docs/route-changes-report.md | tail -n +2 >> $GITHUB_STEP_SUMMARY || true
               echo "" >> $GITHUB_STEP_SUMMARY
 
               # Mostrar rotas adicionadas
-              if grep -q "## ➕ Rotas Adicionadas" route-changes-report.md; then
+              if grep -q "## ➕ Rotas Adicionadas" src/docs/route-changes-report.md; then
                 echo "### ➕ Rotas Adicionadas" >> $GITHUB_STEP_SUMMARY
-                grep -A 1 "### \`" route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
+                grep -A 1 "### \`" src/docs/route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
                 echo "" >> $GITHUB_STEP_SUMMARY
               fi
 
               # Mostrar rotas removidas
-              if grep -q "## ➖ Rotas Removidas" route-changes-report.md; then
+              if grep -q "## ➖ Rotas Removidas" src/docs/route-changes-report.md; then
                 echo "### ➖ Rotas Removidas" >> $GITHUB_STEP_SUMMARY
-                grep -A 1 "### \`" route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
+                grep -A 1 "### \`" src/docs/route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
                 echo "" >> $GITHUB_STEP_SUMMARY
               fi
 
               # Mostrar rotas modificadas
-              if grep -q "## 🔄 Rotas Modificadas" route-changes-report.md; then
+              if grep -q "## 🔄 Rotas Modificadas" src/docs/route-changes-report.md; then
                 echo "### 🔄 Rotas Modificadas" >> $GITHUB_STEP_SUMMARY
-                grep -A 1 "### \`" route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
+                grep -A 1 "### \`" src/docs/route-changes-report.md | grep -E "^\`" | head -10 >> $GITHUB_STEP_SUMMARY || true
                 echo "" >> $GITHUB_STEP_SUMMARY
               fi
 
@@ -102,23 +126,21 @@ jobs:
 
       - name: Upload OpenAPI specification
         uses: actions/upload-artifact@v4
-        if: always()
-        continue-on-error: true
+        if: steps.generate-spec.outcome == 'success'
         with:
           name: openapi-spec
-          path: |
-            openapi-spec.json
-            openapi-spec.previous.json
+          path: openapi-spec.previous.json
           retention-days: 30
+          if-no-files-found: warn
 
       - name: Upload route changes report
         uses: actions/upload-artifact@v4
-        if: always()
-        continue-on-error: true
+        if: steps.detect-changes.outcome == 'success' && steps.detect-changes.outputs.has_changes == 'true'
         with:
           name: route-changes-report
-          path: route-changes-report.md
+          path: src/docs/route-changes-report.md
           retention-days: 30
+          if-no-files-found: warn
 
       - name: Comment PR with route changes
         if: github.event_name == 'pull_request' && always()
@@ -129,7 +151,7 @@ jobs:
             const path = require('path');
 
             try {
-              const reportPath = path.join(process.cwd(), 'route-changes-report.md');
+              const reportPath = path.join(process.cwd(), 'src', 'docs', 'route-changes-report.md');
               
               if (fs.existsSync(reportPath)) {
                 const report = fs.readFileSync(reportPath, 'utf-8');

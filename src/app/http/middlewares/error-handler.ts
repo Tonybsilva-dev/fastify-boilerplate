@@ -1,10 +1,10 @@
 import type { FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
-import { AppError } from '../errors/app-error';
-import { ValidationError } from '../errors/validation-error';
-import '../types/fastify';
 import { env } from '../../../shared/env';
 import { getOrGenerateTraceId } from '../../../shared/utils/trace-id';
+import { AppError } from '../errors/app-error';
+import { ValidationError } from '../errors/validation-error';
+import '../types';
 
 // FastifyReply não é exportado diretamente no Fastify 5.x
 // Usamos uma type assertion baseada na assinatura do setErrorHandler

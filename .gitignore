@@ -29,7 +29,10 @@ coverage/
 
 .taskmaster
 
+# Build output
+dist/
+
 # OpenAPI specs (gerados automaticamente)
 openapi-spec.json
 openapi-spec.previous.json
-route-changes-report.md
+src/docs/route-changes-report.mddist/

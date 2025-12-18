@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import '../types';
 import { getOrGenerateTraceId } from '../../../shared/utils/trace-id';
-import '../types/fastify';
 
 /**
  * Middleware para adicionar traceId automaticamente em todas as requisições

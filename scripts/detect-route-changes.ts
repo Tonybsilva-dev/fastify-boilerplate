@@ -4,7 +4,7 @@
  * Gera um relatório detalhado das mudanças
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 interface RouteInfo {
@@ -180,7 +180,15 @@ function generateMarkdownReport(changes: RouteChanges): string {
 function main() {
 	const currentSpecPath = join(process.cwd(), 'openapi-spec.json');
 	const previousSpecPath = join(process.cwd(), 'openapi-spec.previous.json');
-	const outputPath = join(process.cwd(), 'route-changes-report.md');
+	const docsDir = join(process.cwd(), 'src', 'docs');
+	const outputPath = join(docsDir, 'route-changes-report.md');
+
+	// Garantir que o diretório docs existe
+	try {
+		mkdirSync(docsDir, { recursive: true });
+	} catch (_error) {
+		// Diretório já existe ou erro de permissão
+	}
 
 	// Ler spec atual
 	if (!existsSync(currentSpecPath)) {

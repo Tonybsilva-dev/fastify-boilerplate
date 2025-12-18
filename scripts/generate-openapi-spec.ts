@@ -11,6 +11,10 @@ import { build } from '../src/app/http/server';
 async function generateOpenAPISpec() {
 	try {
 		const app = await build();
+
+		// Aguarda o servidor estar pronto (registra todos os plugins e rotas)
+		await app.ready();
+
 		const spec = app.swagger();
 
 		const outputPath = join(process.cwd(), 'openapi-spec.json');
