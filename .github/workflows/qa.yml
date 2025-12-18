@@ -274,11 +274,11 @@ jobs:
         run: |
           echo "## Test Coverage Analysis" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Verifica se o download foi bem-sucedido
           download_status="${{ steps.download-coverage.outcome }}"
           echo "Download status: $download_status" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "$download_status" == "success" ] && [ -f "coverage/coverage-summary.json" ]; then
             echo "✅ Coverage report found (from QA job)" >> $GITHUB_STEP_SUMMARY
             echo "Coverage report generated successfully" >> $GITHUB_STEP_SUMMARY
