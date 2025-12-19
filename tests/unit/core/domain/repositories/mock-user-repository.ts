@@ -25,7 +25,7 @@ export class MockUserRepository implements UserRepository {
 		const hasId = 'id' in userData && userData.id;
 		const hasCreatedAt = 'createdAt' in userData && userData.createdAt;
 		const hasUpdatedAt = 'updatedAt' in userData && userData.updatedAt;
-		
+
 		const user: User = {
 			...userData,
 			id: hasId ? userData.id : crypto.randomUUID(),

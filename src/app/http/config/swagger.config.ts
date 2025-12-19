@@ -1,6 +1,4 @@
 import { env } from '../../../shared/env';
-import { pageRequestSchema } from '../../../shared/pagination';
-import { zodToJsonSchemaFastify } from '../../../shared/utils/zod-to-json-schema';
 
 /**
  * Configuração completa e profissional do Swagger/OpenAPI
@@ -242,10 +240,33 @@ export function getSwaggerConfig() {
 							},
 						},
 					},
-					PageRequest: zodToJsonSchemaFastify(pageRequestSchema, {
-						name: 'PageRequest',
+					PageRequest: {
+						type: 'object' as const,
 						description: 'Parâmetros de paginação para requisições',
-					}),
+						properties: {
+							page: {
+								type: 'integer',
+								description: 'Número da página',
+								minimum: 1,
+								default: 1,
+							},
+							perPage: {
+								type: 'integer',
+								description: 'Quantidade de itens por página',
+								minimum: 1,
+								maximum: 100,
+								default: 10,
+							},
+							sort: {
+								type: 'string',
+								description: 'Campo para ordenação',
+							},
+							filter: {
+								type: 'string',
+								description: 'Filtro de busca',
+							},
+						},
+					},
 					PageResponse: {
 						type: 'object' as const,
 						required: ['items', 'total', 'page', 'perPage', 'totalPages'],

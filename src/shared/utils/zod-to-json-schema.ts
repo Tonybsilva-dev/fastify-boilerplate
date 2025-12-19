@@ -38,26 +38,38 @@ export function zodToJsonSchemaFastify(
  * Cria um schema de resposta padronizado para Fastify
  * @param schema - Schema Zod para o body da resposta
  * @param description - Descrição da resposta
- * @returns Schema de resposta formatado para Fastify
+ * @param example - Exemplo JSON opcional para exibir no Swagger
+ * @returns Schema de resposta formatado para Fastify (JSON Schema direto)
  */
 export function createResponseSchema(
 	schema: z.ZodTypeAny,
 	description?: string,
+	example?: unknown,
 ) {
-	return {
-		description: description || 'Success response',
-		content: {
-			'application/json': {
-				schema: zodToJsonSchemaFastify(schema),
-			},
-		},
-	};
+	const jsonSchema = zodToJsonSchemaFastify(schema);
+
+	// Fastify espera diretamente o JSON Schema, não o formato OpenAPI com content
+	// Adiciona descrição e exemplo se fornecidos
+	const result: Record<string, unknown> = { ...jsonSchema };
+
+	if (description) {
+		result.description = description;
+	}
+
+	if (example !== undefined) {
+		result.example = example;
+	}
+
+	return result;
 }
 
 /**
  * Cria um schema de request padronizado para Fastify
+ * NOTA: Não inclui exemplos aqui porque o Fastify usa esses schemas para validação
+ * e o JSON Schema strict mode não permite a palavra-chave "example".
+ * Para adicionar exemplos, use a propriedade "examples" diretamente no schema da rota.
  * @param options - Opções com schemas Zod para body, query, params e headers
- * @returns Schema de request formatado para Fastify
+ * @returns Schema de request formatado para Fastify (sem exemplos)
  */
 export function createRequestSchema(options?: {
 	body?: z.ZodTypeAny;

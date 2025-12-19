@@ -94,10 +94,174 @@ export async function authRoutes(
 ) {
 	const { container } = options;
 
+	// Permite registrar rotas para documentação Swagger mesmo sem UserRepository
+	// O erro será lançado apenas quando tentar executar uma rota sem repositório configurado
 	if (!container.userRepository) {
-		throw new Error(
-			'UserRepository não está configurado. Configure via container.setUserRepository()',
+		// Em desenvolvimento, permite registrar rotas apenas para documentação
+		// As rotas retornarão erro 500 se tentarem executar sem repositório
+		// Em produção, configure um UserRepository real antes de registrar as rotas
+	}
+
+	// Verifica se UserRepository está configurado antes de criar use cases
+	// Isso permite que as rotas sejam registradas para documentação Swagger
+	// mas lança erro se tentar executar sem repositório
+	if (!container.userRepository) {
+		// Cria handlers que retornam erro se tentarem executar sem repositório
+		// Isso permite que o Swagger gere a documentação mesmo sem repositório
+		const errorHandler = async () => {
+			throw new Error(
+				'UserRepository não está configurado. Configure via container.setUserRepository()',
+			);
+		};
+
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		(fastify as any).post(
+			'/auth/register',
+			{
+				schema: {
+					description: 'Registra um novo usuário na aplicação',
+					tags: ['auth'],
+					body: createRequestSchema({ body: registerRequestSchema }).body,
+					response: {
+						201: createResponseSchema(
+							registerResponseSchema,
+							'Usuário registrado com sucesso',
+							{
+								user: {
+									id: '123e4567-e89b-12d3-a456-426614174000',
+									name: 'João Silva',
+									email: 'joao.silva@example.com',
+									role: 'ROLE_USER',
+									accountStatus: 'ACTIVE',
+									createdAt: '2024-01-01T00:00:00.000Z',
+									updatedAt: '2024-01-01T00:00:00.000Z',
+								},
+								token:
+									'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJlbWFpbCI6ImpvYW8uc2lsdmFAZXhhbXBsZS5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzA0MDY3MjAwLCJleHAiOjE3MDQwNzA4MDB9.example',
+							},
+						),
+						400: createResponseSchema(
+							validationErrorSchema,
+							'Erro de validação ou email duplicado',
+							{
+								error: 'ValidationError',
+								message: 'Erro de validação nos dados fornecidos',
+								details: [
+									{
+										path: ['email'],
+										message: 'Email já está em uso',
+									},
+								],
+								traceId: '123e4567-e89b-12d3-a456-426614174000',
+							},
+						),
+					},
+				},
+			},
+			errorHandler,
 		);
+
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		(fastify as any).post(
+			'/auth/login',
+			{
+				schema: {
+					description: 'Autentica um usuário e retorna token JWT',
+					tags: ['auth'],
+					body: createRequestSchema({ body: loginRequestSchema }).body,
+					response: {
+						200: createResponseSchema(
+							loginResponseSchema,
+							'Login realizado com sucesso',
+							{
+								user: {
+									id: '123e4567-e89b-12d3-a456-426614174000',
+									name: 'João Silva',
+									email: 'joao.silva@example.com',
+									role: 'ROLE_USER',
+									accountStatus: 'ACTIVE',
+								},
+								token:
+									'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJlbWFpbCI6ImpvYW8uc2lsdmFAZXhhbXBsZS5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzA0MDY3MjAwLCJleHAiOjE3MDQwNzA4MDB9.example',
+							},
+						),
+						400: createResponseSchema(
+							validationErrorSchema,
+							'Erro de validação',
+							{
+								error: 'ValidationError',
+								message: 'Erro de validação nos dados fornecidos',
+								details: [
+									{
+										path: ['email'],
+										message: 'Email inválido',
+									},
+								],
+								traceId: '123e4567-e89b-12d3-a456-426614174000',
+							},
+						),
+						401: createResponseSchema(
+							unauthorizedErrorSchema,
+							'Credenciais inválidas',
+							{
+								error: 'AuthError',
+								message: 'Credenciais inválidas',
+								traceId: '123e4567-e89b-12d3-a456-426614174000',
+							},
+						),
+					},
+				},
+			},
+			errorHandler,
+		);
+
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		(fastify as any).get(
+			'/auth/me',
+			{
+				schema: {
+					description: 'Obtém dados do usuário autenticado',
+					tags: ['auth'],
+					security: [{ bearerAuth: [] }],
+					response: {
+						200: createResponseSchema(
+							currentUserResponseSchema,
+							'Dados do usuário autenticado',
+							{
+								id: '123e4567-e89b-12d3-a456-426614174000',
+								name: 'João Silva',
+								email: 'joao.silva@example.com',
+								role: 'ROLE_USER',
+								accountStatus: 'ACTIVE',
+								createdAt: '2024-01-01T00:00:00.000Z',
+								updatedAt: '2024-01-01T00:00:00.000Z',
+							},
+						),
+						401: createResponseSchema(
+							unauthorizedErrorSchema,
+							'Não autenticado',
+							{
+								error: 'AuthError',
+								message: 'Token de autenticação não fornecido',
+								traceId: '123e4567-e89b-12d3-a456-426614174000',
+							},
+						),
+						404: createResponseSchema(
+							notFoundErrorSchema,
+							'Usuário não encontrado',
+							{
+								error: 'NotFoundError',
+								message: 'Usuário não encontrado',
+								traceId: '123e4567-e89b-12d3-a456-426614174000',
+							},
+						),
+					},
+				},
+			},
+			errorHandler,
+		);
+
+		return;
 	}
 
 	const registerUseCase = new RegisterUserUseCase(
@@ -124,15 +288,49 @@ export async function authRoutes(
 			schema: {
 				description: 'Registra um novo usuário na aplicação',
 				tags: ['auth'],
-				body: createRequestSchema({ body: registerRequestSchema }).body,
+				body: {
+					...(createRequestSchema({ body: registerRequestSchema })
+						.body as Record<string, unknown>),
+					// Adiciona exemplo para documentação Swagger
+					// O Fastify está configurado para ignorar propriedades desconhecidas
+					example: {
+						name: 'João Silva',
+						email: 'joao.silva@example.com',
+						password: 'senhaSegura123',
+					},
+				},
 				response: {
 					201: createResponseSchema(
 						registerResponseSchema,
 						'Usuário registrado com sucesso',
+						{
+							user: {
+								id: '123e4567-e89b-12d3-a456-426614174000',
+								name: 'João Silva',
+								email: 'joao.silva@example.com',
+								role: 'ROLE_USER',
+								accountStatus: 'ACTIVE',
+								createdAt: '2024-01-01T00:00:00.000Z',
+								updatedAt: '2024-01-01T00:00:00.000Z',
+							},
+							token:
+								'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJlbWFpbCI6ImpvYW8uc2lsdmFAZXhhbXBsZS5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzA0MDY3MjAwLCJleHAiOjE3MDQwNzA4MDB9.example',
+						},
 					),
 					400: createResponseSchema(
 						validationErrorSchema,
 						'Erro de validação ou email duplicado',
+						{
+							error: 'ValidationError',
+							message: 'Erro de validação nos dados fornecidos',
+							details: [
+								{
+									path: ['email'],
+									message: 'Email já está em uso',
+								},
+							],
+							traceId: '123e4567-e89b-12d3-a456-426614174000',
+						},
 					),
 				},
 			},
@@ -160,16 +358,57 @@ export async function authRoutes(
 			schema: {
 				description: 'Autentica um usuário e retorna token JWT',
 				tags: ['auth'],
-				body: createRequestSchema({ body: loginRequestSchema }).body,
+				body: {
+					...(createRequestSchema({ body: loginRequestSchema }).body as Record<
+						string,
+						unknown
+					>),
+					// Adiciona exemplo para documentação Swagger
+					// O Fastify está configurado para ignorar propriedades desconhecidas
+					example: {
+						email: 'joao.silva@example.com',
+						password: 'senhaSegura123',
+					},
+				},
 				response: {
 					200: createResponseSchema(
 						loginResponseSchema,
 						'Login realizado com sucesso',
+						{
+							user: {
+								id: '123e4567-e89b-12d3-a456-426614174000',
+								name: 'João Silva',
+								email: 'joao.silva@example.com',
+								role: 'ROLE_USER',
+								accountStatus: 'ACTIVE',
+							},
+							token:
+								'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJlbWFpbCI6ImpvYW8uc2lsdmFAZXhhbXBsZS5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzA0MDY3MjAwLCJleHAiOjE3MDQwNzA4MDB9.example',
+						},
 					),
-					400: createResponseSchema(validationErrorSchema, 'Erro de validação'),
+					400: createResponseSchema(
+						validationErrorSchema,
+						'Erro de validação',
+						{
+							error: 'ValidationError',
+							message: 'Erro de validação nos dados fornecidos',
+							details: [
+								{
+									path: ['email'],
+									message: 'Email inválido',
+								},
+							],
+							traceId: '123e4567-e89b-12d3-a456-426614174000',
+						},
+					),
 					401: createResponseSchema(
 						unauthorizedErrorSchema,
 						'Credenciais inválidas',
+						{
+							error: 'AuthError',
+							message: 'Credenciais inválidas',
+							traceId: '123e4567-e89b-12d3-a456-426614174000',
+						},
 					),
 				},
 			},
@@ -205,11 +444,33 @@ export async function authRoutes(
 					200: createResponseSchema(
 						currentUserResponseSchema,
 						'Dados do usuário autenticado',
+						{
+							id: '123e4567-e89b-12d3-a456-426614174000',
+							name: 'João Silva',
+							email: 'joao.silva@example.com',
+							role: 'ROLE_USER',
+							accountStatus: 'ACTIVE',
+							createdAt: '2024-01-01T00:00:00.000Z',
+							updatedAt: '2024-01-01T00:00:00.000Z',
+						},
 					),
-					401: createResponseSchema(unauthorizedErrorSchema, 'Não autenticado'),
+					401: createResponseSchema(
+						unauthorizedErrorSchema,
+						'Não autenticado',
+						{
+							error: 'AuthError',
+							message: 'Token de autenticação não fornecido',
+							traceId: '123e4567-e89b-12d3-a456-426614174000',
+						},
+					),
 					404: createResponseSchema(
 						notFoundErrorSchema,
 						'Usuário não encontrado',
+						{
+							error: 'NotFoundError',
+							message: 'Usuário não encontrado',
+							traceId: '123e4567-e89b-12d3-a456-426614174000',
+						},
 					),
 				},
 			},

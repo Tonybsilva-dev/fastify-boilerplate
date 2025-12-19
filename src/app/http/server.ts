@@ -4,9 +4,11 @@ import fastify from 'fastify';
 import { env } from '../../shared/env';
 import { getSwaggerConfig } from './config/swagger.config';
 import { getSwaggerUIConfig } from './config/swagger-ui.config';
+import { AppContainer } from './container';
 import { healthcheckRoutes } from './healthcheck/healthcheck.routes';
 import { errorHandler } from './middlewares/error-handler';
 import { traceIdPlugin } from './middlewares/trace-id';
+import { authRoutes } from './routes/auth.routes';
 
 // biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos, necessário type assertion
 const server = (fastify as any)({
@@ -22,6 +24,14 @@ const server = (fastify as any)({
 						},
 					}
 				: undefined,
+	},
+	// Configura Ajv para ignorar propriedades desconhecidas como 'example' e 'examples'
+	// Isso permite adicionar exemplos nos schemas sem quebrar a validação
+	ajv: {
+		customOptions: {
+			strict: false, // Desabilita strict mode para permitir propriedades como 'example'
+			removeAdditional: false,
+		},
 	},
 });
 
@@ -44,13 +54,13 @@ async function build() {
 
 	// Inicializa container de dependências
 	// TODO: Em produção, configurar UserRepository real aqui
-	// Por enquanto, as rotas de auth não funcionarão sem um UserRepository configurado
-	// const container = new AppContainer();
-	// container.setUserRepository(new PrismaUserRepository(prisma));
-
-	// Registra rotas de autenticação
-	// Nota: Rotas de auth requerem UserRepository configurado
-	// await server.register(authRoutes, { container });
+	// Exemplo: container.setUserRepository(new PrismaUserRepository(prisma));
+	// Por enquanto, registramos as rotas para aparecerem no Swagger
+	// As rotas retornarão erro se tentarem executar sem UserRepository configurado
+	const container = new AppContainer();
+	// Nota: UserRepository não está configurado, então as rotas aparecerão no Swagger
+	// mas retornarão erro ao tentar executar. Configure um repositório real para uso.
+	await server.register(authRoutes, { container });
 
 	// TODO: Registrar outras rotas aqui
 	// await server.register(exampleRoutes);

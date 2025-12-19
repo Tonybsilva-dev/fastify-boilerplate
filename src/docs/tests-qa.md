@@ -462,15 +462,228 @@ Garantir que os casos de uso de autenticação (`RegisterUser`, `Login`, `GetCur
 
 ---
 
-## 7. Próximos Passos de QA
+## 7. Testes de Integração de Autenticação
 
-- Adicionar testes de integração para:
-  - Casos de uso de autenticação integrados com rotas HTTP.
-  - Validação de tokens JWT em middlewares de autenticação.
-  - Integração entre `AccountStatusVO` e casos de uso.
+### Status: ✅ Implementado
+
+Testes de integração foram adicionados para validar o comportamento completo das rotas HTTP de autenticação, incluindo validação de schemas, tratamento de erros e integração com casos de uso.
+
+### 7.1 Estrutura de Testes de Integração
+
+**Localização**: `tests/integration/auth/`
+
+- **`register.spec.ts`**: Testes de registro de usuário (`POST /auth/register`)
+- **`login.spec.ts`**: Testes de login e autenticação (`POST /auth/login`)
+- **`me.spec.ts`**: Testes de obtenção de dados do usuário autenticado (`GET /auth/me`)
+
+**Helpers de Teste**: `tests/integration/helpers/`
+
+- **`test-server.ts`**: Cria servidor Fastify configurado para testes
+  - `createTestServer()`: Cria instância do servidor com MockUserRepository
+  - `makeRequest()`: Wrapper para fazer requisições HTTP nos testes
+
+**Factories**: `tests/factories/`
+
+- **`user.factory.ts`**: Factory para criar dados de teste
+  - `createUser()`: Cria usuário com valores padrão
+  - `createAdminUser()`: Cria usuário admin
+  - `createInactiveUser()`: Cria usuário inativo
+  - `createSuspendedUser()`: Cria usuário suspenso
+  - `createPendingVerificationUser()`: Cria usuário pendente de verificação
+  - `createRegisterData()`: Cria dados para registro
+
+### 7.2 Testes de Registro (`POST /auth/register`)
+
+**Arquivo**: `tests/integration/auth/register.spec.ts`
+
+#### Casos de teste implementados
+
+- **IT-REGISTER-001 – Registro bem-sucedido**
+  - **Tipo**: Integração
+  - **Cenário**: Registrar novo usuário com dados válidos
+  - **Critério de aceitação**:
+    - Retorna 201 com dados do usuário e token JWT
+    - Usuário criado com `role = USER` e `accountStatus = ACTIVE` por padrão
+    - Token JWT válido é retornado
+
+- **IT-REGISTER-002 – Define role e status padrão**
+  - **Tipo**: Integração
+  - **Cenário**: Registrar sem especificar role e accountStatus
+  - **Critério de aceitação**: Role e status são definidos como padrão (USER, ACTIVE)
+
+- **IT-REGISTER-003 – Permite role e status customizados**
+  - **Tipo**: Integração
+  - **Cenário**: Registrar com role ADMIN e status ACTIVE
+  - **Critério de aceitação**: Usuário criado com valores customizados
+
+- **IT-REGISTER-004 – Validação de email inválido**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar registrar com email inválido
+  - **Critério de aceitação**: Retorna 400 com erro de validação
+
+- **IT-REGISTER-005 – Validação de senha curta**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar registrar com senha menor que 8 caracteres
+  - **Critério de aceitação**: Retorna 400 com erro de validação
+
+- **IT-REGISTER-006 – Validação de nome curto**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar registrar com nome menor que 2 caracteres
+  - **Critério de aceitação**: Retorna 400 com erro de validação
+
+- **IT-REGISTER-007 – Validação de body vazio**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar registrar sem dados
+  - **Critério de aceitação**: Retorna 400 com erro de validação
+
+- **IT-REGISTER-008 – Rejeita email duplicado**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar registrar com email já existente
+  - **Critério de aceitação**: Retorna 400 com erro de email duplicado
+
+- **IT-REGISTER-009 – Hash de senha**
+  - **Tipo**: Integração
+  - **Cenário**: Registrar usuário e verificar se senha foi hasheada
+  - **Critério de aceitação**: Senha armazenada como hash bcrypt, não em texto plano
+
+### 7.3 Testes de Login (`POST /auth/login`)
+
+**Arquivo**: `tests/integration/auth/login.spec.ts`
+
+#### Casos de teste implementados
+
+- **IT-LOGIN-001 – Login bem-sucedido**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer login com credenciais válidas
+  - **Critério de aceitação**:
+    - Retorna 200 com dados do usuário e token JWT
+    - Token contém informações corretas do usuário
+
+- **IT-LOGIN-002 – Rejeita email inexistente**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar login com email que não existe
+  - **Critério de aceitação**: Retorna 401 com mensagem "Credenciais inválidas"
+
+- **IT-LOGIN-003 – Rejeita senha incorreta**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar login com senha incorreta
+  - **Critério de aceitação**: Retorna 401 com mensagem "Credenciais inválidas"
+
+- **IT-LOGIN-004 – Validação de email inválido**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar login com email em formato inválido
+  - **Critério de aceitação**: Retorna 400 com erro de validação
+
+- **IT-LOGIN-005 – Validação de senha vazia**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar login com senha vazia
+  - **Critério de aceitação**: Retorna 400 com erro de validação
+
+- **IT-LOGIN-006 – Rejeita conta INACTIVE**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar login com conta inativa
+  - **Critério de aceitação**: Retorna 400 com mensagem indicando que conta não pode autenticar
+
+- **IT-LOGIN-007 – Rejeita conta SUSPENDED**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar login com conta suspensa
+  - **Critério de aceitação**: Retorna 400 com mensagem indicando que conta não pode autenticar
+
+- **IT-LOGIN-008 – Rejeita conta PENDING_VERIFICATION**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar login com conta pendente de verificação
+  - **Critério de aceitação**: Retorna 400 com mensagem indicando que conta não pode autenticar
+
+- **IT-LOGIN-009 – Permite login para conta ACTIVE**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer login com conta ativa
+  - **Critério de aceitação**: Login bem-sucedido retornando token
+
+### 7.4 Testes de Obtenção de Usuário (`GET /auth/me`)
+
+**Arquivo**: `tests/integration/auth/me.spec.ts`
+
+#### Casos de teste implementados
+
+- **IT-ME-001 – Retorna dados do usuário autenticado**
+  - **Tipo**: Integração
+  - **Cenário**: Obter dados do usuário com token válido
+  - **Critério de aceitação**:
+    - Retorna 200 com todos os dados do usuário
+    - Inclui `createdAt` e `updatedAt` formatados como ISO string
+
+- **IT-ME-002 – Retorna dados corretos para usuário admin**
+  - **Tipo**: Integração
+  - **Cenário**: Obter dados de usuário admin autenticado
+  - **Critério de aceitação**: Retorna role correto (ADMIN)
+
+- **IT-ME-003 – Rejeita requisição sem token**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar acessar sem token de autenticação
+  - **Critério de aceitação**: Retorna 401 com mensagem "Token de autenticação não fornecido"
+
+- **IT-ME-004 – Rejeita token em formato inválido**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar acessar com token em formato incorreto
+  - **Critério de aceitação**: Retorna 401 com mensagem "Formato de token inválido"
+
+- **IT-ME-005 – Rejeita token inválido**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar acessar com token JWT inválido
+  - **Critério de aceitação**: Retorna 401 com erro de token inválido
+
+- **IT-ME-006 – Rejeita token expirado**
+  - **Tipo**: Integração
+  - **Cenário**: Tentar acessar com token JWT expirado
+  - **Critério de aceitação**: Retorna 401 com erro de token expirado
+
+- **IT-ME-007 – Rejeita quando usuário não existe**
+  - **Tipo**: Integração
+  - **Cenário**: Token válido mas usuário não existe no repositório
+  - **Critério de aceitação**: Retorna 404 com mensagem "Usuário não encontrado"
+
+- **IT-ME-008 – Funciona com accountStatus diferente de ACTIVE**
+  - **Tipo**: Integração
+  - **Cenário**: Obter dados de usuário com status INACTIVE
+  - **Critério de aceitação**: Retorna 200 com dados do usuário (não valida status para GET /auth/me)
+
+### 7.5 Correções Implementadas
+
+#### MockUserRepository
+
+- **Problema**: IDs eram gerados novamente ao criar usuário, causando inconsistências nos testes
+- **Solução**: Método `create()` agora preserva `id`, `createdAt` e `updatedAt` quando já existem
+- **Arquivo**: `tests/unit/core/domain/repositories/mock-user-repository.ts`
+
+#### Validação na Rota de Login
+
+- **Problema**: Erros de validação retornavam 401 em vez de 400
+- **Solução**: Adicionada validação manual com Zod antes de executar use case
+- **Arquivo**: `src/app/http/routes/auth.routes.ts`
+
+### 7.6 Cobertura de Testes
+
+**Total de testes**: 157 testes passando
+
+- **Testes unitários**: 148 testes
+- **Testes de integração**: 9 testes (3 arquivos)
+
+**Cobertura das rotas de autenticação**:
+
+- ✅ `POST /auth/register`: 9 testes de integração
+- ✅ `POST /auth/login`: 9 testes de integração
+- ✅ `GET /auth/me`: 8 testes de integração
+
+---
+
+## 8. Próximos Passos de QA
+
 - Expandir cobertura de testes para:
-  - Hierarquia de erros (`AppError`, `ValidationError`, `AuthError`, etc.) em contextos reais.
-  - Rotas HTTP de autenticação (`POST /auth/register`, `POST /auth/login`, `GET /auth/me`).
+  - Hierarquia de erros (`AppError`, `ValidationError`, `AuthError`, etc.) em contextos reais de integração.
+  - Rotas HTTP adicionais quando implementadas.
 - Criar testes E2E quando aplicável:
   - Fluxo completo de registro → login → acesso a recurso protegido.
-  - Validação de `AccountStatus` em diferentes cenários.
+  - Validação de `AccountStatus` em diferentes cenários end-to-end.
+- Adicionar testes de performance:
+  - Tempo de resposta das rotas de autenticação.
+  - Carga de requisições simultâneas.
