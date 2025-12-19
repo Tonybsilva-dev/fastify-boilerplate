@@ -24,6 +24,12 @@ const envSchema = z.object({
 	API_TERMS_OF_SERVICE: z.string().url().optional(),
 	API_EXTERNAL_DOCS_URL: z.string().url().optional(),
 	API_EXTERNAL_DOCS_DESCRIPTION: z.string().optional(),
+	// JWT Configuration
+	JWT_SECRET: z
+		.string()
+		.min(32, 'JWT secret must be at least 32 characters')
+		.default('development-secret-key-must-be-at-least-32-characters-long'),
+	JWT_EXPIRES_IN: z.string().default('7d'),
 });
 
 export type Env = z.infer<typeof envSchema>;
