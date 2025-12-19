@@ -42,10 +42,19 @@ async function build() {
 	// Registra rotas
 	await server.register(healthcheckRoutes);
 
+	// Inicializa container de dependências
+	// TODO: Em produção, configurar UserRepository real aqui
+	// Por enquanto, as rotas de auth não funcionarão sem um UserRepository configurado
+	// const container = new AppContainer();
+	// container.setUserRepository(new PrismaUserRepository(prisma));
+
+	// Registra rotas de autenticação
+	// Nota: Rotas de auth requerem UserRepository configurado
+	// await server.register(authRoutes, { container });
+
 	// TODO: Registrar outras rotas aqui
 	// await server.register(exampleRoutes);
 	// await server.register(userRoutes);
-	// await server.register(authRoutes);
 
 	// Rotas de exemplo de erros (apenas para desenvolvimento/documentação)
 	if (env.NODE_ENV !== 'production') {
