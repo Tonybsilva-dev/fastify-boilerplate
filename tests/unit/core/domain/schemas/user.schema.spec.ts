@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { UserRole } from '../../../../../src/core/domain/entities/user';
+import {
+	AccountStatus,
+	UserRole,
+} from '../../../../../src/core/domain/entities/user';
 import {
 	createUserSchema,
 	updateUserSchema,
@@ -16,6 +19,7 @@ describe('userSchema', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:super-secret',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 			createdAt: now,
 			updatedAt: now,
 		});
@@ -32,6 +36,7 @@ describe('userSchema', () => {
 			email: 'not-an-email',
 			passwordHash: 'hashed:super-secret',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 			createdAt: now,
 			updatedAt: now,
 		});
@@ -49,6 +54,25 @@ describe('userSchema', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:super-secret',
 			role: 'ROLE_MANAGER',
+			accountStatus: AccountStatus.ACTIVE,
+			createdAt: now,
+			updatedAt: now,
+		});
+
+		expect(result.success).toBe(false);
+	});
+
+	it('should reject invalid accountStatus', () => {
+		const now = new Date();
+
+		// @ts-expect-error testing runtime validation
+		const result = userSchema.safeParse({
+			id: '1e02e2b8-8ab8-4aa0-9a46-3c2b0bbf5b1b',
+			name: 'John Doe',
+			email: 'john@example.com',
+			passwordHash: 'hashed:super-secret',
+			role: UserRole.USER,
+			accountStatus: 'INVALID_STATUS',
 			createdAt: now,
 			updatedAt: now,
 		});

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { UserRole } from '../../../../../src/core/domain/entities/user';
+import { AccountStatus, UserRole } from '../../../../../src/core/domain';
 import { MockUserRepository } from './mock-user-repository';
 
 describe('MockUserRepository', () => {
@@ -15,6 +15,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		};
 
 		const user = await repository.create(userData);
@@ -22,6 +23,7 @@ describe('MockUserRepository', () => {
 		expect(user.id).toBeDefined();
 		expect(user.name).toBe(userData.name);
 		expect(user.email).toBe(userData.email);
+		expect(user.accountStatus).toBe(AccountStatus.ACTIVE);
 		expect(user.createdAt).toBeInstanceOf(Date);
 		expect(user.updatedAt).toBeInstanceOf(Date);
 	});
@@ -32,6 +34,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		const found = await repository.findById(user.id);
@@ -51,6 +54,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		const found = await repository.findByEmail(user.email);
@@ -70,6 +74,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		const updated = await repository.update(user.id, {
@@ -98,6 +103,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		const deleted = await repository.delete(user.id);
@@ -118,6 +124,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		repository.clear();
@@ -131,6 +138,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		await repository.create({
@@ -138,6 +146,7 @@ describe('MockUserRepository', () => {
 			email: 'jane@example.com',
 			passwordHash: 'hashed:password2',
 			role: UserRole.ADMIN,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		const all = repository.getAll();
@@ -153,6 +162,7 @@ describe('MockUserRepository', () => {
 			email: 'john@example.com',
 			passwordHash: 'hashed:password',
 			role: UserRole.USER,
+			accountStatus: AccountStatus.ACTIVE,
 		});
 
 		expect(repository.count()).toBe(1);

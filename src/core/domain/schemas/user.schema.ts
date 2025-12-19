@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserRole } from '../entities/user';
+import { AccountStatus, UserRole } from '../entities/user';
 
 export const userSchema = z.object({
 	id: z.string().uuid(),
@@ -7,6 +7,7 @@ export const userSchema = z.object({
 	email: z.string().email(),
 	passwordHash: z.string().min(1),
 	role: z.nativeEnum(UserRole),
+	accountStatus: z.nativeEnum(AccountStatus),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });
@@ -17,7 +18,8 @@ export const createUserSchema = userSchema
 	.omit({ id: true, createdAt: true, updatedAt: true, passwordHash: true })
 	.extend({
 		password: z.string().min(8),
-	});
+	})
+	.partial({ accountStatus: true }); // accountStatus opcional na criação, padrão será ACTIVE
 
 export type CreateUserSchema = z.infer<typeof createUserSchema>;
 
