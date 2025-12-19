@@ -1,6 +1,6 @@
 import type { UserRepository } from '../../core/domain/repositories/user-repository';
-import { BcryptPasswordHasher } from '../../core/infra/auth/password-hasher';
 import { JWTService } from '../../core/infra/auth/jwt-service';
+import { BcryptPasswordHasher } from '../../core/infra/auth/password-hasher';
 import { env } from '../../shared/env';
 
 /**

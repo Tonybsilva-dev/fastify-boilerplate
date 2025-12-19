@@ -10,8 +10,8 @@ import {
 	createRequestSchema,
 	createResponseSchema,
 } from '../../../shared/utils/zod-to-json-schema';
-import { authMiddleware } from '../middlewares/auth';
 import type { AppContainer } from '../container';
+import { authMiddleware } from '../middlewares/auth';
 
 // Schemas para requisições
 const registerRequestSchema = z.object({

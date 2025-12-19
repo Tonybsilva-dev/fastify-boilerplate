@@ -1,2 +1,2 @@
-export * from './password';
 export * from './account-status';
+export * from './password';

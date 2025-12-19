@@ -1,7 +1,7 @@
 import {
-	pageRequestSchema,
-	type PageRequest,
 	PAGINATION_DEFAULTS,
+	type PageRequest,
+	pageRequestSchema,
 } from './page-request';
 
 /**

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { NotFoundError } from '../../../../../../src/app/http/errors/not-found-error';
+import { GetCurrentUserUseCase } from '../../../../../../src/core/application/use-cases/auth/get-current-user';
 import { AccountStatus, UserRole } from '../../../../../../src/core/domain';
 import { MockUserRepository } from '../../../domain/repositories/mock-user-repository';
-import { GetCurrentUserUseCase } from '../../../../../../src/core/application/use-cases/auth/get-current-user';
-import { NotFoundError } from '../../../../../../src/app/http/errors/not-found-error';
 
 describe('GetCurrentUserUseCase', () => {
 	it('deve retornar dados do usuário quando encontrado', async () => {

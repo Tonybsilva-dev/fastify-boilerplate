@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-	pageRequestSchema,
 	PAGINATION_DEFAULTS,
+	pageRequestSchema,
 } from '../../../../src/shared/pagination/page-request';
 
 describe('pageRequestSchema', () => {

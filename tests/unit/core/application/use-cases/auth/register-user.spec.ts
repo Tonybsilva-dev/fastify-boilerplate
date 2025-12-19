@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { AccountStatus, UserRole } from '../../../../../../src/core/domain';
-import { MockUserRepository } from '../../../domain/repositories/mock-user-repository';
-import { BcryptPasswordHasher } from '../../../../../../src/core/infra/auth/password-hasher';
-import { JWTService } from '../../../../../../src/core/infra/auth/jwt-service';
-import { RegisterUserUseCase } from '../../../../../../src/core/application/use-cases/auth/register-user';
 import { DomainError } from '../../../../../../src/app/http/errors/domain-error';
+import { RegisterUserUseCase } from '../../../../../../src/core/application/use-cases/auth/register-user';
+import { AccountStatus, UserRole } from '../../../../../../src/core/domain';
+import { JWTService } from '../../../../../../src/core/infra/auth/jwt-service';
+import { BcryptPasswordHasher } from '../../../../../../src/core/infra/auth/password-hasher';
+import { MockUserRepository } from '../../../domain/repositories/mock-user-repository';
 
 describe('RegisterUserUseCase', () => {
 	const jwtSecret = 'test-secret-key-that-is-at-least-32-characters-long';

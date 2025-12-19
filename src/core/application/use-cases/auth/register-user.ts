@@ -1,10 +1,10 @@
+import { DomainError } from '../../../../app/http/errors/domain-error';
 import { AccountStatus, UserRole } from '../../../domain/entities/user';
 import type { UserRepository } from '../../../domain/repositories/user-repository';
 import { createUserSchema } from '../../../domain/schemas/user.schema';
-import { Password } from '../../../domain/value-objects/password';
 import type { PasswordHasher } from '../../../domain/value-objects/password';
+import { Password } from '../../../domain/value-objects/password';
 import type { JWTService } from '../../../infra/auth/jwt-service';
-import { DomainError } from '../../../../app/http/errors/domain-error';
 
 /**
  * DTO de entrada para registro de usuário

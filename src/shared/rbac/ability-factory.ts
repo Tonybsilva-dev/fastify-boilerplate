@@ -2,10 +2,10 @@ import { AbilityBuilder, createMongoAbility } from '@casl/ability';
 import { UserRole } from '../../core/domain';
 import {
 	Action,
-	Subject,
 	type AppAbility,
 	type AuthenticatedUser,
 	type DefineRulesFor,
+	Subject,
 } from './types';
 
 /**

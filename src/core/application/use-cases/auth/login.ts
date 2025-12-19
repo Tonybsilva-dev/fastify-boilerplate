@@ -1,11 +1,11 @@
-import { AccountStatus } from '../../../domain/entities/user';
-import type { UserRepository } from '../../../domain/repositories/user-repository';
-import { Password } from '../../../domain/value-objects/password';
-import type { PasswordHasher } from '../../../domain/value-objects/password';
-import { AccountStatusVO } from '../../../domain/value-objects/account-status';
-import type { JWTService } from '../../../infra/auth/jwt-service';
 import { AuthError } from '../../../../app/http/errors/auth-error';
 import { DomainError } from '../../../../app/http/errors/domain-error';
+import { AccountStatus } from '../../../domain/entities/user';
+import type { UserRepository } from '../../../domain/repositories/user-repository';
+import { AccountStatusVO } from '../../../domain/value-objects/account-status';
+import type { PasswordHasher } from '../../../domain/value-objects/password';
+import { Password } from '../../../domain/value-objects/password';
+import type { JWTService } from '../../../infra/auth/jwt-service';
 
 /**
  * DTO de entrada para login

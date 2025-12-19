@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { AccountStatus, UserRole } from '../../../../../../src/core/domain';
-import { MockUserRepository } from '../../../domain/repositories/mock-user-repository';
-import { BcryptPasswordHasher } from '../../../../../../src/core/infra/auth/password-hasher';
-import { JWTService } from '../../../../../../src/core/infra/auth/jwt-service';
-import { LoginUseCase } from '../../../../../../src/core/application/use-cases/auth/login';
 import { AuthError } from '../../../../../../src/app/http/errors/auth-error';
 import { DomainError } from '../../../../../../src/app/http/errors/domain-error';
+import { LoginUseCase } from '../../../../../../src/core/application/use-cases/auth/login';
+import { AccountStatus, UserRole } from '../../../../../../src/core/domain';
+import { JWTService } from '../../../../../../src/core/infra/auth/jwt-service';
+import { BcryptPasswordHasher } from '../../../../../../src/core/infra/auth/password-hasher';
+import { MockUserRepository } from '../../../domain/repositories/mock-user-repository';
 
 describe('LoginUseCase', () => {
 	const jwtSecret = 'test-secret-key-that-is-at-least-32-characters-long';

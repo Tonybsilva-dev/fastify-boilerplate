@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { ZodError } from 'zod';
+import { PAGINATION_DEFAULTS } from '../../../../src/shared/pagination';
 import {
 	normalizePagination,
 	parsePageRequest,
 	parsePageRequestSafe,
 } from '../../../../src/shared/pagination/helpers';
-import { PAGINATION_DEFAULTS } from '../../../../src/shared/pagination';
-import { ZodError } from 'zod';
 
 describe('parsePageRequest', () => {
 	it('deve converter query string válida em PageRequest', () => {

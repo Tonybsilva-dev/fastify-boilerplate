@@ -1,5 +1,5 @@
-import type { UserRepository } from '../../../domain/repositories/user-repository';
 import { NotFoundError } from '../../../../app/http/errors/not-found-error';
+import type { UserRepository } from '../../../domain/repositories/user-repository';
 
 /**
  * DTO de entrada para obter usuário atual

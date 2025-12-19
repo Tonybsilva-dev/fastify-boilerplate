@@ -16,8 +16,9 @@
 		"lint": "biome lint .",
 		"format": "biome format . --write",
 		"check": "biome check .",
+		"check:fix": "biome check . --write",
 		"build:check": "tsc --noEmit",
-		"qa": "npm run lint && npm run format && npm run test:changed && npm run build:check",
+		"qa": "npm run check:fix && npm run test:changed && npm run build:check",
 		"prepare": "husky"
 	},
 	"keywords": [

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { UserRole } from '../../../../src/core/domain';
-import { Action, Subject } from '../../../../src/shared/rbac/types';
 import {
 	createAbilityForUser,
 	createEmptyAbility,
 } from '../../../../src/shared/rbac/ability-factory';
 import type { AuthenticatedUser } from '../../../../src/shared/rbac/types';
+import { Action, Subject } from '../../../../src/shared/rbac/types';
 
 describe('createAbilityForUser', () => {
 	describe('ROLE_USER', () => {
