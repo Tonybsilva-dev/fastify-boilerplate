@@ -18,14 +18,19 @@ export class MockUserRepository implements UserRepository {
 	}
 
 	async create(
-		userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>,
+		userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> | User,
 	): Promise<User> {
 		const now = new Date();
+		// Se o usuário já tem ID, createdAt e updatedAt, preserva-os
+		const hasId = 'id' in userData && userData.id;
+		const hasCreatedAt = 'createdAt' in userData && userData.createdAt;
+		const hasUpdatedAt = 'updatedAt' in userData && userData.updatedAt;
+		
 		const user: User = {
 			...userData,
-			id: crypto.randomUUID(),
-			createdAt: now,
-			updatedAt: now,
+			id: hasId ? userData.id : crypto.randomUUID(),
+			createdAt: hasCreatedAt ? userData.createdAt : now,
+			updatedAt: hasUpdatedAt ? userData.updatedAt : now,
 		};
 		this.users.set(user.id, user);
 		return user;

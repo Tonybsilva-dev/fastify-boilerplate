@@ -62,6 +62,26 @@ const currentUserResponseSchema = z.object({
 	updatedAt: z.string().datetime(),
 });
 
+// Schemas para erros (usados em testes quando $ref não está disponível)
+const validationErrorSchema = z.object({
+	error: z.string(),
+	message: z.string(),
+	details: z.array(z.unknown()).optional(),
+	traceId: z.string().optional(),
+});
+
+const unauthorizedErrorSchema = z.object({
+	error: z.string(),
+	message: z.string(),
+	traceId: z.string().optional(),
+});
+
+const notFoundErrorSchema = z.object({
+	error: z.string(),
+	message: z.string(),
+	traceId: z.string().optional(),
+});
+
 /**
  * Rotas de autenticação
  * POST /auth/register - Registra novo usuário
@@ -110,16 +130,10 @@ export async function authRoutes(
 						registerResponseSchema,
 						'Usuário registrado com sucesso',
 					),
-					400: {
-						description: 'Erro de validação ou email duplicado',
-						content: {
-							'application/json': {
-								schema: {
-									$ref: '#/components/schemas/ValidationError',
-								},
-							},
-						},
-					},
+					400: createResponseSchema(
+						validationErrorSchema,
+						'Erro de validação ou email duplicado',
+					),
 				},
 			},
 		},
@@ -152,32 +166,24 @@ export async function authRoutes(
 						loginResponseSchema,
 						'Login realizado com sucesso',
 					),
-					400: {
-						description: 'Erro de validação',
-						content: {
-							'application/json': {
-								schema: {
-									$ref: '#/components/schemas/ValidationError',
-								},
-							},
-						},
-					},
-					401: {
-						description: 'Credenciais inválidas',
-						content: {
-							'application/json': {
-								schema: {
-									$ref: '#/components/schemas/UnauthorizedError',
-								},
-							},
-						},
-					},
+					400: createResponseSchema(validationErrorSchema, 'Erro de validação'),
+					401: createResponseSchema(
+						unauthorizedErrorSchema,
+						'Credenciais inválidas',
+					),
 				},
 			},
 		},
 		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
 		async (request: any) => {
-			const result = await loginUseCase.execute(request.body);
+			// Valida o body manualmente para garantir que erros de validação retornem 400
+			const validationResult = loginRequestSchema.safeParse(request.body);
+			if (!validationResult.success) {
+				// Lança ZodError que será capturado pelo error handler e retornará 400
+				throw validationResult.error;
+			}
+
+			const result = await loginUseCase.execute(validationResult.data);
 
 			return {
 				user: result.user,
@@ -200,26 +206,11 @@ export async function authRoutes(
 						currentUserResponseSchema,
 						'Dados do usuário autenticado',
 					),
-					401: {
-						description: 'Não autenticado',
-						content: {
-							'application/json': {
-								schema: {
-									$ref: '#/components/schemas/UnauthorizedError',
-								},
-							},
-						},
-					},
-					404: {
-						description: 'Usuário não encontrado',
-						content: {
-							'application/json': {
-								schema: {
-									$ref: '#/components/schemas/NotFoundError',
-								},
-							},
-						},
-					},
+					401: createResponseSchema(unauthorizedErrorSchema, 'Não autenticado'),
+					404: createResponseSchema(
+						notFoundErrorSchema,
+						'Usuário não encontrado',
+					),
 				},
 			},
 			preHandler: async (request: FastifyRequest, _reply: unknown) => {
