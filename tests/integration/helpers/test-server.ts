@@ -28,6 +28,14 @@ export async function createTestServer(
 		// Desabilita validação de schemas de resposta para evitar problemas com $ref
 		disableRequestValidation: false, // Mantém validação de request
 		disableResponseValidation: true, // Desabilita validação de response
+		// Configura Ajv para ignorar propriedades desconhecidas como 'example' e 'examples'
+		// Isso permite adicionar exemplos nos schemas sem quebrar a validação
+		ajv: {
+			customOptions: {
+				strict: false, // Desabilita strict mode para permitir propriedades como 'example'
+				removeAdditional: false,
+			},
+		},
 	});
 
 	// Registra Swagger PRIMEIRO com configuração mínima para que os schemas $ref funcionem
@@ -79,7 +87,8 @@ export async function makeRequest(
 	headers: Record<string, string>;
 	body: unknown;
 }> {
-	const response = await server.inject({
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos com inject
+	const response = await (server as any).inject({
 		method: request.method,
 		url: request.url,
 		headers: request.headers,
@@ -89,14 +98,17 @@ export async function makeRequest(
 
 	let parsedBody: unknown;
 	try {
-		parsedBody = JSON.parse(response.body);
+		parsedBody = JSON.parse(response.body as string);
 	} catch {
 		parsedBody = response.body;
 	}
 
 	return {
-		statusCode: response.statusCode,
-		headers: response.headers as Record<string, string>,
+		statusCode: response.statusCode as number,
+		headers: response.headers as Record<string, string | string[]> as Record<
+			string,
+			string
+		>,
 		body: parsedBody,
 	};
 }
