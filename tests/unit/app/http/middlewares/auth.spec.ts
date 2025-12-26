@@ -159,8 +159,8 @@ describe('createAuthPlugin', () => {
 		// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do Fastify
 		const mockFastify: any = {
 			// biome-ignore lint/complexity/noBannedTypes: Necessário para mock genérico
-			// biome-ignore lint/suspicious/noExplicitAny: Necessário para atribuição dinâmica
 			decorate: vi.fn((name: string, fn: Function) => {
+				// biome-ignore lint/suspicious/noExplicitAny: Necessário para atribuição dinâmica
 				(mockFastify as any)[name] = fn;
 			}),
 		};
