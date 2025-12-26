@@ -33,6 +33,16 @@ export default defineConfig({
 				'**/coverage/**',
 				'**/src/docs/**',
 				'**/src/index.ts',
+				// Arquivos de tipos (declarações TypeScript)
+				'**/*.d.ts',
+				'**/types/**',
+				// Interfaces de repositório (apenas contratos)
+				'**/repositories/*.ts',
+				// Arquivos de exemplo/documentação
+				'**/*example*.ts',
+				'**/error-example.routes.ts',
+				// Container (gerenciamento de dependências, não precisa de testes unitários)
+				'**/container.ts',
 			],
 			include: ['src/**/*.{js,ts}'],
 			thresholds: {
