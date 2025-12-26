@@ -1,9 +1,9 @@
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import fastify from 'fastify';
-import rateLimit from '@fastify/rate-limit';
-import helmet from '@fastify/helmet';
-import cors from '@fastify/cors';
 import { env } from '../../shared/env';
 import { getSwaggerConfig } from './config/swagger.config';
 import { getSwaggerUIConfig } from './config/swagger-ui.config';
@@ -53,7 +53,7 @@ async function build() {
 
 	// Registra CORS
 	await server.register(cors, {
-		origin: env.NODE_ENV === 'production' ? false : true, // Em produção, configurar origins específicos
+		origin: env.NODE_ENV !== 'production', // Em produção, configurar origins específicos
 		credentials: true,
 	});
 

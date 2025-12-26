@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import '../types';
 import { getOrGenerateTraceId } from '../../../shared/utils/trace-id';

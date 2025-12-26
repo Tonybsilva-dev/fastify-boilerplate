@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import type { JWTService } from '../../../core/infra/auth/jwt-service';
 import { AuthError } from '../errors/auth-error';

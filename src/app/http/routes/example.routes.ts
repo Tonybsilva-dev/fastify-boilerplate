@@ -1,4 +1,3 @@
-import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createUserSchema } from '../../../core/domain/schemas/user.schema';
 import {
