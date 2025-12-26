@@ -1,0 +1,131 @@
+name: Dependencies Check
+
+on:
+  schedule:
+    # Executa toda segunda-feira às 08:00 UTC
+    - cron: "0 8 * * 1"
+  workflow_dispatch: # Permite execução manual
+
+jobs:
+  check-dependencies:
+    name: Check for Outdated Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for outdated packages
+        id: outdated
+        run: |
+          echo "## 📦 Análise de Dependências" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Verifica dependências desatualizadas
+          npm outdated --json > outdated.json || true
+          
+          if [ -s outdated.json ] && [ "$(cat outdated.json)" != "{}" ]; then
+            echo "### ⚠️ Dependências Desatualizadas" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "As seguintes dependências têm atualizações disponíveis:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat outdated.json | jq '.' >> $GITHUB_STEP_SUMMARY || cat outdated.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "💡 **Recomendação:** Execute \`npm-check-updates\` para ver atualizações disponíveis" >> $GITHUB_STEP_SUMMARY
+            echo "has_outdated=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ **Todas as dependências estão atualizadas!**" >> $GITHUB_STEP_SUMMARY
+            echo "has_outdated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for security vulnerabilities
+        run: |
+          echo "## 🔒 Análise de Segurança" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          npm audit --audit-level=moderate --json > audit.json || true
+          
+          if [ -f "audit.json" ]; then
+            VULN_COUNT=$(cat audit.json | jq '.metadata.vulnerabilities.total // 0')
+            CRITICAL=$(cat audit.json | jq '.metadata.vulnerabilities.critical // 0')
+            HIGH=$(cat audit.json | jq '.metadata.vulnerabilities.high // 0')
+            MODERATE=$(cat audit.json | jq '.metadata.vulnerabilities.moderate // 0')
+            
+            echo "### Resumo de Vulnerabilidades" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total:** $VULN_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- **Críticas:** $CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Altas:** $HIGH" >> $GITHUB_STEP_SUMMARY
+            echo "- **Moderadas:** $MODERATE" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+              echo "⚠️ **Ação necessária:** Vulnerabilidades críticas ou altas detectadas!" >> $GITHUB_STEP_SUMMARY
+              echo "Execute \`npm audit fix\` para tentar corrigir automaticamente" >> $GITHUB_STEP_SUMMARY
+            elif [ "$VULN_COUNT" -gt 0 ]; then
+              echo "ℹ️ Vulnerabilidades moderadas ou baixas detectadas" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ **Nenhuma vulnerabilidade encontrada!**" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Check for unused dependencies
+        run: |
+          echo "## 🧹 Análise de Dependências Não Utilizadas" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Instala depcheck se não estiver disponível
+          if ! command -v depcheck &> /dev/null; then
+            npm install -g depcheck
+          fi
+          
+          depcheck --json > depcheck.json || true
+          
+          if [ -f "depcheck.json" ]; then
+            UNUSED_DEPS=$(cat depcheck.json | jq '.dependencies // [] | length')
+            UNUSED_DEVDEPS=$(cat depcheck.json | jq '.devDependencies // [] | length')
+            
+            if [ "$UNUSED_DEPS" -gt 0 ] || [ "$UNUSED_DEVDEPS" -gt 0 ]; then
+              echo "### ⚠️ Dependências Não Utilizadas" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              if [ "$UNUSED_DEPS" -gt 0 ]; then
+                echo "**Dependências de produção ($UNUSED_DEPS):**" >> $GITHUB_STEP_SUMMARY
+                cat depcheck.json | jq -r '.dependencies[]?' | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              if [ "$UNUSED_DEVDEPS" -gt 0 ]; then
+                echo "**Dependências de desenvolvimento ($UNUSED_DEVDEPS):**" >> $GITHUB_STEP_SUMMARY
+                cat depcheck.json | jq -r '.devDependencies[]?' | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              echo "💡 **Recomendação:** Considere remover dependências não utilizadas para reduzir o tamanho do projeto" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ **Nenhuma dependência não utilizada encontrada!**" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-reports
+          path: |
+            outdated.json
+            audit.json
+            depcheck.json
+          retention-days: 30
+          if-no-files-found: ignore
+

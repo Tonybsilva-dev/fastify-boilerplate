@@ -1,6 +1,9 @@
 import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
+import helmet from '@fastify/helmet';
+import cors from '@fastify/cors';
 import { env } from '../../shared/env';
 import { getSwaggerConfig } from './config/swagger.config';
 import { getSwaggerUIConfig } from './config/swagger-ui.config';
@@ -25,6 +28,12 @@ const server = (fastify as any)({
 					}
 				: undefined,
 	},
+	// Configurações de timeout e limites para resiliência
+	bodyLimit: 1024 * 1024, // 1MB
+	connectionTimeout: 10000, // 10s
+	keepAliveTimeout: 5000, // 5s
+	requestTimeout: 30000, // 30s
+	trustProxy: true, // Confiar em proxies (útil para Docker, load balancers, etc.)
 	// Configura Ajv para ignorar propriedades desconhecidas como 'example' e 'examples'
 	// Isso permite adicionar exemplos nos schemas sem quebrar a validação
 	ajv: {
@@ -36,6 +45,34 @@ const server = (fastify as any)({
 });
 
 async function build() {
+	// Registra Security Headers com Helmet
+	await server.register(helmet, {
+		contentSecurityPolicy: false, // Pode ser configurado depois se necessário
+		crossOriginEmbedderPolicy: false,
+	});
+
+	// Registra CORS
+	await server.register(cors, {
+		origin: env.NODE_ENV === 'production' ? false : true, // Em produção, configurar origins específicos
+		credentials: true,
+	});
+
+	// Registra Rate Limiting Global
+	await server.register(rateLimit, {
+		max: 100, // 100 requisições
+		timeWindow: '1 minute', // por minuto
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify rate-limit types
+		errorResponseBuilder: (_request: any, context: any) => {
+			return {
+				code: 429,
+				error: 'Too Many Requests',
+				message: `Rate limit exceeded, retry in ${context.ttl} seconds`,
+				date: Date.now(),
+				expiresIn: context.ttl,
+			};
+		},
+	});
+
 	// Registra Swagger com configuração completa e profissional
 	// biome-ignore lint/suspicious/noExplicitAny: Necessário para compatibilidade com tipos do Fastify Swagger
 	await server.register(swagger, getSwaggerConfig() as any);

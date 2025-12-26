@@ -29,7 +29,8 @@ const userResponseSchema = z.object({
  * Exemplo de rotas demonstrando o uso de schemas Zod com Swagger automático
  * Este arquivo serve como referência para criar novas rotas
  */
-export async function exampleRoutes(fastify: FastifyInstance) {
+// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+export async function exampleRoutes(fastify: any) {
 	// Exemplo: GET com query params e path params
 	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
 	(fastify as any).get(

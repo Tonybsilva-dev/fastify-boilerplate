@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
 	GetCurrentUserUseCase,
@@ -89,7 +89,8 @@ const notFoundErrorSchema = z.object({
  * GET /auth/me - Obtém dados do usuário autenticado
  */
 export async function authRoutes(
-	fastify: FastifyInstance,
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos, necessário type assertion
+	fastify: any,
 	options: { container: AppContainer },
 ) {
 	const { container } = options;
@@ -285,6 +286,12 @@ export async function authRoutes(
 	(fastify as any).post(
 		'/auth/register',
 		{
+			config: {
+				rateLimit: {
+					max: 3, // Apenas 3 registros por minuto para prevenir spam
+					timeWindow: '1 minute',
+				},
+			},
 			schema: {
 				description: 'Registra um novo usuário na aplicação',
 				tags: ['auth'],
@@ -355,6 +362,12 @@ export async function authRoutes(
 	(fastify as any).post(
 		'/auth/login',
 		{
+			config: {
+				rateLimit: {
+					max: 5, // Apenas 5 tentativas de login por minuto
+					timeWindow: '1 minute',
+				},
+			},
 			schema: {
 				description: 'Autentica um usuário e retorna token JWT',
 				tags: ['auth'],

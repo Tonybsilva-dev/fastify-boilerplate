@@ -21,11 +21,11 @@ describe('Trace ID - Integração', () => {
 			});
 
 			expect(response.statusCode).toBe(200);
-			
+
 			// Debug: imprime todos os headers para diagnóstico
 			console.log('Response headers keys:', Object.keys(response.headers));
 			console.log('Response headers:', response.headers);
-			
+
 			expect(response.headers).toHaveProperty('x-trace-id');
 			expect(response.headers['x-trace-id']).toBeDefined();
 			expect(response.headers['x-trace-id']).toBeTypeOf('string');
@@ -118,4 +118,3 @@ describe('Trace ID - Integração', () => {
 		});
 	});
 });
-

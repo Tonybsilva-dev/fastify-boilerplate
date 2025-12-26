@@ -14,7 +14,8 @@ import { ValidationError } from '../errors/validation-error';
  * Rotas de exemplo demonstrando o tratamento de erros estruturado
  * Útil para testar e documentar os diferentes tipos de erro
  */
-export async function errorExampleRoutes(fastify: FastifyInstance) {
+// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+export async function errorExampleRoutes(fastify: any) {
 	// Exemplo: ValidationError (erro de validação Zod)
 	const validationBodySchema = z.object({ email: z.string().email() });
 	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos

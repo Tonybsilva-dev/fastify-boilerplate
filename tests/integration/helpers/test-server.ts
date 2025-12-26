@@ -130,21 +130,22 @@ export async function makeRequest(
 
 	// Normaliza os headers para garantir que todos sejam acessíveis
 	const normalizedHeaders: Record<string, string> = {};
-	
+
 	// Tenta acessar headers de múltiplas formas
 	// O Fastify inject() pode retornar headers em diferentes propriedades
-	const rawHeaders = 
+	const rawHeaders =
 		(response.headers as Record<string, string | string[]>) ||
-		(response as { raw?: { headers?: Record<string, string | string[]> } }).raw?.headers ||
-		{} as Record<string, string | string[]>;
-	
+		(response as { raw?: { headers?: Record<string, string | string[]> } }).raw
+			?.headers ||
+		({} as Record<string, string | string[]>);
+
 	// Debug temporário: verifica headers retornados
 	if (process.env.DEBUG_HEADERS) {
 		console.log('Response object keys:', Object.keys(response));
 		console.log('Raw headers from inject:', Object.keys(rawHeaders));
 		console.log('All headers:', rawHeaders);
 	}
-	
+
 	for (const [key, value] of Object.entries(rawHeaders)) {
 		// Converte arrays para string (pega o primeiro valor)
 		const headerValue = Array.isArray(value) ? value[0] : value;
@@ -152,7 +153,7 @@ export async function makeRequest(
 		normalizedHeaders[key] = headerValue;
 		normalizedHeaders[key.toLowerCase()] = headerValue;
 	}
-	
+
 	// Debug temporário: verifica headers normalizados
 	if (process.env.DEBUG_HEADERS) {
 		console.log('Normalized headers:', normalizedHeaders);

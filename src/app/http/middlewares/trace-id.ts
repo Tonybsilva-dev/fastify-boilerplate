@@ -3,7 +3,6 @@ import fp from 'fastify-plugin';
 import '../types';
 import { getOrGenerateTraceId } from '../../../shared/utils/trace-id';
 
-
 /**
  * Middleware para adicionar traceId automaticamente em todas as requisições
  * O traceId pode ser fornecido via header X-Trace-Id ou será gerado automaticamente
@@ -74,15 +73,19 @@ export async function onSendTraceIdHook(
  * Plugin Fastify para registrar o middleware de traceId
  * Usa fastify-plugin para garantir que os hooks sejam aplicados globalmente
  */
-export default fp(async function traceIdPlugin(fastify: FastifyInstance) {
+export default fp(
 	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
-	(fastify as any).addHook('onRequest', traceIdMiddleware);
-	// Adiciona preHandler global para garantir que o header seja adicionado em todas as rotas
-	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
-	(fastify as any).addHook('preHandler', traceIdPreHandler);
-	// Adiciona onSend hook como fallback para garantir que o header seja adicionado
-	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
-	(fastify as any).addHook('onSend', onSendTraceIdHook);
-}, {
-	name: 'trace-id',
-});
+	async function traceIdPlugin(fastify: any) {
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		(fastify as any).addHook('onRequest', traceIdMiddleware);
+		// Adiciona preHandler global para garantir que o header seja adicionado em todas as rotas
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		(fastify as any).addHook('preHandler', traceIdPreHandler);
+		// Adiciona onSend hook como fallback para garantir que o header seja adicionado
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		(fastify as any).addHook('onSend', onSendTraceIdHook);
+	},
+	{
+		name: 'trace-id',
+	},
+);

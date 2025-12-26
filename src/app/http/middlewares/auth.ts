@@ -61,7 +61,8 @@ export async function authMiddleware(
  * @param jwtService - Instância do JWTService
  */
 export function createAuthPlugin(jwtService: JWTService) {
-	return fp(async (fastify: FastifyInstance) => {
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+	return fp(async (fastify: any) => {
 		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
 		(fastify as any).decorate(
 			'authenticate',

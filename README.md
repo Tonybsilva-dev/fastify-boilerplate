@@ -111,13 +111,19 @@ Um **boilerplate completo e production-ready** que atua em múltiplas frentes:
 - ✅ **Security Audit**: npm audit integrado no CI
 - ✅ **Password Hashing**: Implementação segura com bcrypt
 - ✅ **JWT Best Practices**: Autenticação baseada em tokens
+- ✅ **Security Headers**: Helmet configurado (X-Content-Type-Options, X-Frame-Options, etc.)
+- ✅ **Rate Limiting**: Proteção contra DDoS e força bruta
+- ✅ **CORS**: Configuração de Cross-Origin Resource Sharing
+- ✅ **Docker Security**: Container com usuário não-root
 
 ### Developer Experience
 
 - ✅ **Hot Reload**: Desenvolvimento com watch mode
+- ✅ **Docker Hot Reload**: Hot-reload no Docker para desenvolvimento
 - ✅ **TypeScript IntelliSense**: Autocomplete completo
 - ✅ **Pre-commit Hooks**: QA automático antes de cada commit
 - ✅ **Conventional Commits**: Padronização de mensagens
+- ✅ **Docker Multi-Stage**: Build otimizado e imagem final pequena
 
 ---
 
@@ -152,6 +158,12 @@ Um **boilerplate completo e production-ready** que atua em múltiplas frentes:
 
 - **CI Platform**: GitHub Actions
 - **Workflows**: QA Pipeline + Code Quality Analysis
+
+### Containerização
+
+- **Docker**: Multi-stage build otimizado
+- **Docker Compose**: Desenvolvimento e produção
+- **Base Image**: Node.js 20 Alpine (imagem leve)
 
 ---
 
@@ -196,6 +208,77 @@ npm run format
 
 # Type check
 npm run build:check
+```
+
+### 🐳 Rodando com Docker
+
+#### Pré-requisitos
+
+- Docker instalado e rodando
+- Docker Compose instalado
+
+#### Configuração Inicial
+
+```bash
+# Copie o arquivo de exemplo e configure as variáveis
+cp .env.example .env
+
+# Edite o .env e configure pelo menos:
+# - JWT_SECRET (mínimo 32 caracteres)
+# - PORT (padrão: 3000)
+```
+
+#### Desenvolvimento (com hot-reload)
+
+```bash
+# Subir o container
+docker compose up
+
+# Ou em background
+docker compose up -d
+
+# Ver logs
+docker compose logs -f
+
+# Parar o container
+docker compose down
+```
+
+A aplicação estará disponível em: `http://localhost:3000`
+
+#### Produção
+
+```bash
+# Build e subir
+docker compose -f docker-compose.prod.yml up --build
+
+# Ou em background
+docker compose -f docker-compose.prod.yml up -d --build
+
+# Ver logs
+docker compose -f docker-compose.prod.yml logs -f
+
+# Parar
+docker compose -f docker-compose.prod.yml down
+```
+
+#### Comandos Úteis
+
+```bash
+# Rebuild da imagem (após mudanças no Dockerfile)
+docker compose build
+
+# Rebuild forçado (sem cache)
+docker compose build --no-cache
+
+# Ver status dos containers
+docker compose ps
+
+# Entrar no container
+docker compose exec app sh
+
+# Ver logs em tempo real
+docker compose logs -f app
 ```
 
 ### Scripts Disponíveis
@@ -251,6 +334,10 @@ fastify-boilerplate/
 ├── .husky/                        # Git hooks
 │   ├── pre-commit
 │   └── commit-msg
+├── .dockerignore                  # Arquivos ignorados no Docker
+├── Dockerfile                     # Dockerfile multi-stage
+├── docker-compose.yml             # Docker Compose (desenvolvimento)
+├── docker-compose.prod.yml        # Docker Compose (produção)
 ├── biome.json                     # Configuração Biome
 ├── commitlint.config.cjs          # Configuração Commitlint
 ├── tsconfig.json                  # Configuração TypeScript
@@ -326,13 +413,25 @@ fastify-boilerplate/
 - [ ] Documentação Swagger/OpenAPI
 - [ ] Testes de integração
 
+### ✅ Resiliência e Segurança
+
+- [x] Docker multi-stage otimizado
+- [x] Docker Compose para desenvolvimento e produção
+- [x] Rate Limiting global e por rota
+- [x] Security Headers (Helmet)
+- [x] CORS configurado
+- [x] Timeouts e limites de requisição
+- [x] Validação robusta de variáveis de ambiente
+
 ### Planejado
 
 - [ ] Integração com banco de dados
 - [ ] Cache layer
-- [ ] Logging estruturado
+- [ ] Logging estruturado para produção
 - [ ] Observabilidade (métricas, traces)
-- [ ] Docker e Docker Compose
+- [ ] Circuit Breaker para dependências externas
+- [ ] Health checks avançados (liveness/readiness)
+- [ ] Graceful shutdown
 - [ ] Exemplos de use cases
 
 ---
@@ -368,10 +467,13 @@ npm install
 ### 2. Configure o Ambiente
 
 ```bash
-# Copie o arquivo de exemplo (quando disponível)
+# Copie o arquivo de exemplo
 cp .env.example .env
 
 # Configure suas variáveis de ambiente
+# Mínimo necessário:
+# - JWT_SECRET (mínimo 32 caracteres)
+# - PORT (padrão: 3000)
 ```
 
 ### 3. Execute o QA
@@ -382,6 +484,16 @@ npm run qa
 ```
 
 ### 4. Comece a Desenvolver
+
+**Opção A: Desenvolvimento Local**
+```bash
+npm run dev
+```
+
+**Opção B: Desenvolvimento com Docker**
+```bash
+docker compose up
+```
 
 - Adicione suas entidades em `src/core/domain/entities/`
 - Crie seus schemas Zod em `src/core/domain/schemas/`

@@ -26,6 +26,14 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Cache Biome
+        uses: actions/cache@v4
+        with:
+          path: ~/.biome
+          key: ${{ runner.os }}-biome-${{ hashFiles('biome.json') }}
+          restore-keys: |
+            ${{ runner.os }}-biome-
+
       - name: Install dependencies
         run: npm ci
 
@@ -37,6 +45,49 @@ jobs:
 
       - name: Run tests
         run: npm test -- --run
+        continue-on-error: true
+
+      - name: Test coverage thresholds
+        run: |
+          if [ -f "coverage/coverage-summary.json" ]; then
+            echo "## 📊 Test Coverage Thresholds" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            LINES=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct // 0')
+            FUNCTIONS=$(cat coverage/coverage-summary.json | jq -r '.total.functions.pct // 0')
+            BRANCHES=$(cat coverage/coverage-summary.json | jq -r '.total.branches.pct // 0')
+            STATEMENTS=$(cat coverage/coverage-summary.json | jq -r '.total.statements.pct // 0')
+            
+            echo "### Cobertura Atual" >> $GITHUB_STEP_SUMMARY
+            echo "- **Lines:** ${LINES}% (threshold: 80%)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Functions:** ${FUNCTIONS}% (threshold: 80%)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branches:** ${BRANCHES}% (threshold: 75%)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Statements:** ${STATEMENTS}% (threshold: 80%)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Verifica thresholds usando awk (mais portável que bc)
+            THRESHOLD_FAILED=0
+            if awk "BEGIN {exit !($LINES < 80)}"; then
+              echo "❌ Lines abaixo do threshold (80%)" >> $GITHUB_STEP_SUMMARY
+              THRESHOLD_FAILED=1
+            fi
+            if awk "BEGIN {exit !($FUNCTIONS < 80)}"; then
+              echo "❌ Functions abaixo do threshold (80%)" >> $GITHUB_STEP_SUMMARY
+              THRESHOLD_FAILED=1
+            fi
+            if awk "BEGIN {exit !($BRANCHES < 75)}"; then
+              echo "❌ Branches abaixo do threshold (75%)" >> $GITHUB_STEP_SUMMARY
+              THRESHOLD_FAILED=1
+            fi
+            if awk "BEGIN {exit !($STATEMENTS < 80)}"; then
+              echo "❌ Statements abaixo do threshold (80%)" >> $GITHUB_STEP_SUMMARY
+              THRESHOLD_FAILED=1
+            fi
+            
+            if [ $THRESHOLD_FAILED -eq 0 ]; then
+              echo "✅ **Todos os thresholds de cobertura foram atingidos!**" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
         continue-on-error: true
 
       - name: Generate coverage report
@@ -80,6 +131,14 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+
+      - name: Cache Biome
+        uses: actions/cache@v4
+        with:
+          path: ~/.biome
+          key: ${{ runner.os }}-biome-${{ hashFiles('biome.json') }}
+          restore-keys: |
+            ${{ runner.os }}-biome-
 
       - name: Install dependencies
         run: npm ci
