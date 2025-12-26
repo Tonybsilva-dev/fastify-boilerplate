@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { UserRole } from '../../../../../src/core/domain';
-import { JWTService } from '../../../../../src/core/infra/auth/jwt-service';
 import { AuthError } from '../../../../../src/app/http/errors/auth-error';
 import {
 	authMiddleware,
 	createAuthPlugin,
 } from '../../../../../src/app/http/middlewares/auth';
+import { UserRole } from '../../../../../src/core/domain';
+import { JWTService } from '../../../../../src/core/infra/auth/jwt-service';
 
 describe('authMiddleware', () => {
 	const secret = 'test-secret-key-must-be-at-least-32-characters-long';
@@ -23,6 +23,7 @@ describe('authMiddleware', () => {
 			headers: {
 				authorization: `Bearer ${token}`,
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
 		await authMiddleware(mockRequest, null, jwtService);
@@ -36,14 +37,15 @@ describe('authMiddleware', () => {
 	it('deve lançar AuthError quando authorization header não existe', async () => {
 		const mockRequest = {
 			headers: {},
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow(AuthError);
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow('Token de autenticação não fornecido');
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			AuthError,
+		);
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			'Token de autenticação não fornecido',
+		);
 	});
 
 	it('deve lançar AuthError quando authorization header é array', async () => {
@@ -51,11 +53,12 @@ describe('authMiddleware', () => {
 			headers: {
 				authorization: ['Bearer token1', 'Bearer token2'],
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow(AuthError);
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			AuthError,
+		);
 	});
 
 	it('deve lançar AuthError quando formato do token é inválido', async () => {
@@ -63,14 +66,15 @@ describe('authMiddleware', () => {
 			headers: {
 				authorization: 'InvalidFormat token',
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow(AuthError);
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow('Formato de token inválido');
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			AuthError,
+		);
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			'Formato de token inválido',
+		);
 	});
 
 	it('deve lançar AuthError quando token não tem Bearer prefix', async () => {
@@ -78,11 +82,12 @@ describe('authMiddleware', () => {
 			headers: {
 				authorization: 'TokenWithoutBearer',
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow(AuthError);
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			AuthError,
+		);
 	});
 
 	it('deve lançar AuthError quando token é inválido', async () => {
@@ -90,11 +95,12 @@ describe('authMiddleware', () => {
 			headers: {
 				authorization: 'Bearer invalid.token.here',
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow(AuthError);
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			AuthError,
+		);
 	});
 
 	it('deve lançar AuthError quando token está expirado', async () => {
@@ -113,11 +119,12 @@ describe('authMiddleware', () => {
 			headers: {
 				authorization: `Bearer ${invalidToken}`,
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
-		await expect(
-			authMiddleware(mockRequest, null, jwtService),
-		).rejects.toThrow(AuthError);
+		await expect(authMiddleware(mockRequest, null, jwtService)).rejects.toThrow(
+			AuthError,
+		);
 	});
 });
 
@@ -134,6 +141,7 @@ describe('createAuthPlugin', () => {
 		// Mock do fastify instance
 		const mockFastify = {
 			decorate: vi.fn(),
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
 		// Registra o plugin
@@ -152,6 +160,7 @@ describe('createAuthPlugin', () => {
 			decorate: vi.fn((name: string, fn: Function) => {
 				(mockFastify as any)[name] = fn;
 			}),
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
 		} as any;
 
 		await plugin(mockFastify, {});
@@ -161,4 +170,3 @@ describe('createAuthPlugin', () => {
 		expect(typeof mockFastify.authenticate).toBe('function');
 	});
 });
-

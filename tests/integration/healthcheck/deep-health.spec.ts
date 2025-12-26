@@ -16,6 +16,7 @@ describe('GET /health/deep', () => {
 		expect(response.body).toHaveProperty('uptime');
 		expect(response.body).toHaveProperty('timestamp');
 		expect(response.body).toHaveProperty('checks');
+		// biome-ignore lint/suspicious/noExplicitAny: Necessário para acessar propriedades dinâmicas
 		expect(typeof (response.body as any).checks).toBe('object');
 	});
 
@@ -27,6 +28,7 @@ describe('GET /health/deep', () => {
 			url: '/health/deep',
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: Necessário para acessar propriedades dinâmicas
 		const body = response.body as any;
 		expect(body.timestamp).toBeDefined();
 		expect(typeof body.timestamp).toBe('string');
@@ -43,10 +45,10 @@ describe('GET /health/deep', () => {
 			url: '/health/deep',
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: Necessário para acessar propriedades dinâmicas
 		const body = response.body as any;
 		expect(body.uptime).toBeDefined();
 		expect(typeof body.uptime).toBe('number');
 		expect(body.uptime).toBeGreaterThanOrEqual(0);
 	});
 });
-

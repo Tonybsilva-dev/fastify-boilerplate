@@ -172,7 +172,8 @@ describe('JWTService', () => {
 			);
 			// Gera token e depois modifica manualmente para ter payload inválido
 			// Na prática, isso seria um token de outro sistema
-			const invalidToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoiVVNFUiJ9.invalid';
+			const invalidToken =
+				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoiVVNFUiJ9.invalid';
 			const result = jwtService.validate(invalidToken);
 			expect(result.valid).toBe(false);
 		});
@@ -190,21 +191,14 @@ describe('JWTService', () => {
 			};
 			const otherToken = otherService.generate(payload);
 			const result = jwtService.validate(otherToken);
-			
+
 			expect(result.valid).toBe(false);
 			expect(result.error).toBeDefined();
 		});
 
 		it('deve rejeitar token expirado', () => {
-			// Cria um token com expiração muito curta
-			const payload = {
-				userId: 'user-123',
-				email: 'user@example.com',
-				role: UserRole.USER,
-			};
-			
-			// Gera token que expira imediatamente (não é possível testar facilmente sem mock)
-			// Mas podemos testar o caso onde o token tem estrutura inválida
+			// Testa o caso onde o token tem estrutura inválida
+			// Token expirado seria testado com mock de tempo, mas isso é complexo
 			const result = jwtService.validate('expired.token.here');
 			expect(result.valid).toBe(false);
 		});
