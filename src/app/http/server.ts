@@ -7,7 +7,7 @@ import { getSwaggerUIConfig } from './config/swagger-ui.config';
 import { AppContainer } from './container';
 import { healthcheckRoutes } from './healthcheck/healthcheck.routes';
 import { errorHandler } from './middlewares/error-handler';
-import { traceIdPlugin } from './middlewares/trace-id';
+import traceIdPlugin from './middlewares/trace-id';
 import { authRoutes } from './routes/auth.routes';
 
 // biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos, necessário type assertion

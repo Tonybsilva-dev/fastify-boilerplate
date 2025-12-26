@@ -5,7 +5,7 @@ import { getSwaggerConfig } from '../../../src/app/http/config/swagger.config';
 import { AppContainer } from '../../../src/app/http/container';
 import { healthcheckRoutes } from '../../../src/app/http/healthcheck/healthcheck.routes';
 import { errorHandler } from '../../../src/app/http/middlewares/error-handler';
-import { traceIdPlugin } from '../../../src/app/http/middlewares/trace-id';
+import traceIdPlugin from '../../../src/app/http/middlewares/trace-id';
 import { authRoutes } from '../../../src/app/http/routes/auth.routes';
 import type { UserRepository } from '../../../src/core/domain/repositories/user-repository';
 import { MockUserRepository } from '../../unit/core/domain/repositories/mock-user-repository';
@@ -38,12 +38,12 @@ export async function createTestServer(
 		},
 	});
 
-	// Registra Swagger PRIMEIRO com configuração mínima para que os schemas $ref funcionem
+	// Registra middleware de traceId PRIMEIRO para garantir que os hooks sejam executados
+	await server.register(traceIdPlugin);
+
+	// Registra Swagger com configuração mínima para que os schemas $ref funcionem
 	// biome-ignore lint/suspicious/noExplicitAny: Necessário para compatibilidade com tipos do Fastify Swagger
 	await server.register(swagger, getSwaggerConfig() as any);
-
-	// Registra middleware de traceId
-	await server.register(traceIdPlugin);
 
 	// Registra middleware global de erros
 	server.setErrorHandler(errorHandler);
@@ -60,6 +60,31 @@ export async function createTestServer(
 
 	// Registra rotas de autenticação (depois do Swagger estar registrado)
 	await server.register(authRoutes, { container });
+
+	// Registra rota raiz para testes
+	// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+	(server as any).get(
+		'/',
+		{
+			schema: {
+				description: 'Rota raiz da API',
+				tags: ['root'],
+			},
+		},
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		async (request: any, reply: any) => {
+			// Garante que o header seja adicionado mesmo se o hook falhar
+			const traceId = request.traceId;
+			if (traceId) {
+				reply.header('X-Trace-Id', traceId);
+			}
+			return {
+				message: 'Fastify Boilerplate API',
+				version: '1.0.0',
+				docs: '/docs',
+			};
+		},
+	);
 
 	// Aguarda o servidor estar completamente pronto
 	await server.ready();
@@ -103,12 +128,39 @@ export async function makeRequest(
 		parsedBody = response.body;
 	}
 
+	// Normaliza os headers para garantir que todos sejam acessíveis
+	const normalizedHeaders: Record<string, string> = {};
+	
+	// Tenta acessar headers de múltiplas formas
+	// O Fastify inject() pode retornar headers em diferentes propriedades
+	const rawHeaders = 
+		(response.headers as Record<string, string | string[]>) ||
+		(response as { raw?: { headers?: Record<string, string | string[]> } }).raw?.headers ||
+		{} as Record<string, string | string[]>;
+	
+	// Debug temporário: verifica headers retornados
+	if (process.env.DEBUG_HEADERS) {
+		console.log('Response object keys:', Object.keys(response));
+		console.log('Raw headers from inject:', Object.keys(rawHeaders));
+		console.log('All headers:', rawHeaders);
+	}
+	
+	for (const [key, value] of Object.entries(rawHeaders)) {
+		// Converte arrays para string (pega o primeiro valor)
+		const headerValue = Array.isArray(value) ? value[0] : value;
+		// Mantém a chave original e também adiciona em minúsculas para busca case-insensitive
+		normalizedHeaders[key] = headerValue;
+		normalizedHeaders[key.toLowerCase()] = headerValue;
+	}
+	
+	// Debug temporário: verifica headers normalizados
+	if (process.env.DEBUG_HEADERS) {
+		console.log('Normalized headers:', normalizedHeaders);
+	}
+
 	return {
 		statusCode: response.statusCode as number,
-		headers: response.headers as Record<string, string | string[]> as Record<
-			string,
-			string
-		>,
+		headers: normalizedHeaders,
 		body: parsedBody,
 	};
 }

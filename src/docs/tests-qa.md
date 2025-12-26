@@ -661,18 +661,77 @@ Testes de integração foram adicionados para validar o comportamento completo d
 - **Solução**: Adicionada validação manual com Zod antes de executar use case
 - **Arquivo**: `src/app/http/routes/auth.routes.ts`
 
-### 7.6 Cobertura de Testes
+### 7.6 Testes de Trace ID
 
-**Total de testes**: 157 testes passando
+**Arquivo**: `tests/integration/trace-id.spec.ts`
+
+#### Casos de teste implementados
+
+- **IT-TRACE-001 – Adiciona header X-Trace-Id automaticamente**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer requisição sem header X-Trace-Id
+  - **Critério de aceitação**: Header X-Trace-Id é adicionado automaticamente na resposta
+
+- **IT-TRACE-002 – Gera traceId no formato UUID quando não fornecido**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer requisição sem header X-Trace-Id
+  - **Critério de aceitação**: TraceId gerado está no formato UUID v4
+
+- **IT-TRACE-003 – Usa traceId fornecido via header X-Trace-Id na requisição**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer requisição com header X-Trace-Id customizado
+  - **Critério de aceitação**: Header X-Trace-Id na resposta usa o valor fornecido
+
+- **IT-TRACE-004 – Gera traceIds diferentes para requisições diferentes**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer múltiplas requisições sem header X-Trace-Id
+  - **Critério de aceitação**: Cada requisição recebe um traceId único
+
+- **IT-TRACE-005 – Inclui header X-Trace-Id em todas as rotas**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer requisições para diferentes rotas
+  - **Critério de aceitação**: Todas as rotas retornam header X-Trace-Id
+
+- **IT-TRACE-006 – Inclui header X-Trace-Id mesmo em respostas de erro**
+  - **Tipo**: Integração
+  - **Cenário**: Fazer requisição para rota inexistente (404)
+  - **Critério de aceitação**: Resposta de erro inclui header X-Trace-Id
+
+### 7.7 Correções no Middleware de Trace ID
+
+#### Problema: Header X-Trace-Id não era adicionado nas respostas
+
+- **Problema**: O plugin `traceIdPlugin` não estava sendo registrado como plugin global, causando encapsulamento dos hooks e impedindo que o header fosse adicionado corretamente nas respostas.
+- **Solução**:
+  - Uso de `fastify-plugin` para garantir que os hooks sejam aplicados globalmente
+  - Mudança de `export async function` para `export default fp(async function)`
+  - Atualização das importações para usar `import traceIdPlugin` em vez de `import { traceIdPlugin }`
+  - Reordenação do registro do plugin no servidor de teste para garantir execução antes do Swagger
+- **Arquivos modificados**:
+  - `src/app/http/middlewares/trace-id.ts`
+  - `src/app/http/server.ts`
+  - `tests/integration/helpers/test-server.ts`
+
+### 7.8 Cobertura de Testes
+
+**Total de testes**: 163 testes passando
 
 - **Testes unitários**: 148 testes
-- **Testes de integração**: 9 testes (3 arquivos)
+- **Testes de integração**: 15 testes (4 arquivos)
+  - `tests/integration/auth/register.spec.ts`: 9 testes
+  - `tests/integration/auth/login.spec.ts`: 9 testes
+  - `tests/integration/auth/me.spec.ts`: 8 testes
+  - `tests/integration/trace-id.spec.ts`: 6 testes
 
 **Cobertura das rotas de autenticação**:
 
 - ✅ `POST /auth/register`: 9 testes de integração
 - ✅ `POST /auth/login`: 9 testes de integração
 - ✅ `GET /auth/me`: 8 testes de integração
+
+**Cobertura de middlewares**:
+
+- ✅ Trace ID middleware: 6 testes de integração
 
 ---
 

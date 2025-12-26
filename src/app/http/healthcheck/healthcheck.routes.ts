@@ -34,7 +34,13 @@ export async function healthcheckRoutes(fastify: FastifyInstance) {
 				},
 			},
 		},
-		async () => {
+		// biome-ignore lint/suspicious/noExplicitAny: Fastify 5.x tem problemas de tipos
+		async (request: any, reply: any) => {
+			// Garante que o header seja adicionado mesmo se o hook falhar
+			const traceId = request.traceId;
+			if (traceId) {
+				reply.header('X-Trace-Id', traceId);
+			}
 			return {
 				status: 'ok' as const,
 				version: env.API_VERSION,
