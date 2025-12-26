@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZodError, z } from 'zod';
-import { AppError } from '../../../../../src/app/http/errors/app-error';
+import { ZodError } from 'zod';
 import { ForbiddenError } from '../../../../../src/app/http/errors/forbidden-error';
 import { NotFoundError } from '../../../../../src/app/http/errors/not-found-error';
 import { ValidationError } from '../../../../../src/app/http/errors/validation-error';
@@ -14,8 +13,11 @@ vi.mock('../../../../../src/shared/env', () => ({
 }));
 
 describe('errorHandler', () => {
+	// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do Fastify
 	let mockRequest: any;
+	// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do Fastify
 	let mockReply: any;
+	// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do Fastify
 	let mockLogger: any;
 
 	beforeEach(() => {
