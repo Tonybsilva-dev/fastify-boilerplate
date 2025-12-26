@@ -5,24 +5,24 @@ on:
     branches:
       - main
     paths:
-      - 'Dockerfile'
-      - 'docker-compose*.yml'
-      - '.dockerignore'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'src/**'
-      - '.github/workflows/docker-build.yml'
+      - "Dockerfile"
+      - "docker-compose*.yml"
+      - ".dockerignore"
+      - "package.json"
+      - "package-lock.json"
+      - "src/**"
+      - ".github/workflows/docker-build.yml"
   pull_request:
     branches:
       - main
     paths:
-      - 'Dockerfile'
-      - 'docker-compose*.yml'
-      - '.dockerignore'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'src/**'
-      - '.github/workflows/docker-build.yml'
+      - "Dockerfile"
+      - "docker-compose*.yml"
+      - ".dockerignore"
+      - "package.json"
+      - "package-lock.json"
+      - "src/**"
+      - ".github/workflows/docker-build.yml"
   workflow_dispatch: # Permite execução manual
 
 jobs:
@@ -52,13 +52,13 @@ jobs:
         run: |
           echo "## 🐳 Docker Image Analysis" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Verifica tamanho da imagem
           IMAGE_SIZE=$(docker images fastify-boilerplate:test --format "{{.Size}}")
           echo "### Tamanho da Imagem" >> $GITHUB_STEP_SUMMARY
           echo "📦 **$IMAGE_SIZE**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Verifica se o usuário não-root está configurado
           echo "### Verificação de Segurança" >> $GITHUB_STEP_SUMMARY
           USER=$(docker run --rm fastify-boilerplate:test whoami)
@@ -68,7 +68,7 @@ jobs:
             echo "⚠️ **Atenção:** Container rodando como $USER (deveria ser appuser)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Lista arquivos na imagem
           echo "### Estrutura da Imagem" >> $GITHUB_STEP_SUMMARY
           echo "```" >> $GITHUB_STEP_SUMMARY
@@ -79,7 +79,7 @@ jobs:
         run: |
           echo "## 🧪 Testes do Container Docker" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Inicia container em background
           CONTAINER_ID=$(docker run -d \
             -e NODE_ENV=production \
@@ -88,9 +88,9 @@ jobs:
             -e JWT_SECRET=test-secret-key-must-be-at-least-32-characters-long \
             -p 3000:3000 \
             fastify-boilerplate:test)
-          
+
           echo "Container ID: $CONTAINER_ID" >> $GITHUB_STEP_SUMMARY
-          
+
           # Função para limpar container em caso de erro
           cleanup() {
             echo "🧹 Limpando container..." >> $GITHUB_STEP_SUMMARY
@@ -98,7 +98,7 @@ jobs:
             docker rm $CONTAINER_ID 2>/dev/null || true
           }
           trap cleanup EXIT
-          
+
           # Aguarda o container iniciar e verifica logs
           echo "⏳ Aguardando container iniciar..." >> $GITHUB_STEP_SUMMARY
           for i in {1..30}; do
@@ -119,10 +119,10 @@ jobs:
             fi
             sleep 1
           done
-          
+
           # Aguarda mais um pouco para garantir que está pronto
           sleep 3
-          
+
           # Verifica se o container está rodando
           if ! docker ps --format '{{.ID}}' | grep -q "^${CONTAINER_ID:0:12}"; then
             echo "❌ Container não está rodando" >> $GITHUB_STEP_SUMMARY
@@ -132,7 +132,7 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          
+
           # Testa health check
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Health Check" >> $GITHUB_STEP_SUMMARY
@@ -147,7 +147,7 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Todos os testes do container passaram!" >> $GITHUB_STEP_SUMMARY
 
@@ -157,16 +157,16 @@ jobs:
         continue-on-error: true
         with:
           image-ref: fastify-boilerplate:test
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy results
         uses: github/codeql-action/upload-sarif@v4
         if: always() && steps.trivy-scan.outcome == 'success'
         continue-on-error: true
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"
           wait-for-processing: false
 
   docker-compose-test:
@@ -193,7 +193,7 @@ jobs:
         run: |
           echo "## 🧪 Teste Docker Compose - Desenvolvimento" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Valida sintaxe do docker-compose
           docker compose -f docker-compose.yml config > /dev/null
           echo "✅ docker-compose.yml válido" >> $GITHUB_STEP_SUMMARY
@@ -202,8 +202,7 @@ jobs:
         run: |
           echo "## 🧪 Teste Docker Compose - Produção" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Valida sintaxe do docker-compose
           docker compose -f docker-compose.prod.yml config > /dev/null
           echo "✅ docker-compose.prod.yml válido" >> $GITHUB_STEP_SUMMARY
-
