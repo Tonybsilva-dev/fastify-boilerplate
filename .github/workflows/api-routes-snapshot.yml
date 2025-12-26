@@ -38,7 +38,6 @@ jobs:
         with:
           name: openapi-spec
           path: .
-          if-no-files-found: ignore
 
       - name: Generate OpenAPI specification
         id: generate-spec
@@ -127,20 +126,20 @@ jobs:
       - name: Upload OpenAPI specification
         uses: actions/upload-artifact@v4
         if: steps.generate-spec.outcome == 'success'
+        continue-on-error: true
         with:
           name: openapi-spec
           path: openapi-spec.previous.json
           retention-days: 30
-          if-no-files-found: warn
 
       - name: Upload route changes report
         uses: actions/upload-artifact@v4
         if: steps.detect-changes.outcome == 'success' && steps.detect-changes.outputs.has_changes == 'true'
+        continue-on-error: true
         with:
           name: route-changes-report
           path: src/docs/route-changes-report.md
           retention-days: 30
-          if-no-files-found: warn
 
       - name: Comment PR with route changes
         if: github.event_name == 'pull_request' && always()

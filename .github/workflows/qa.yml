@@ -43,8 +43,8 @@ jobs:
       - name: Type check (TypeScript)
         run: npm run build:check
 
-      - name: Run tests
-        run: npm test -- --run
+      - name: Run tests with coverage
+        run: npm run test:coverage
         continue-on-error: true
 
       - name: Test coverage thresholds
@@ -90,30 +90,33 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: Generate coverage report
-        run: npm run test:coverage || true
-        continue-on-error: true
-
       - name: Verify coverage report
         run: |
           if [ -f "coverage/coverage-summary.json" ]; then
             echo "✅ Coverage report generated successfully"
             echo "Coverage file exists: coverage/coverage-summary.json"
           else
-            echo "⚠️ Coverage report not found, but continuing..."
-            # Cria diretório vazio para evitar erro no upload
-            mkdir -p coverage
-            touch coverage/.gitkeep
+            echo "⚠️ Coverage report not found"
+            echo "Attempting to generate coverage report..."
+            npm run test:coverage || echo "Failed to generate coverage report"
+            if [ -f "coverage/coverage-summary.json" ]; then
+              echo "✅ Coverage report generated successfully after retry"
+            else
+              echo "⚠️ Coverage report still not found, but continuing..."
+              # Cria diretório vazio para evitar erro no upload
+              mkdir -p coverage
+              touch coverage/.gitkeep
+            fi
           fi
 
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: coverage-report
           path: coverage/
           retention-days: 7
-          if-no-files-found: warn
 
   code-quality:
     name: Code Quality Analysis

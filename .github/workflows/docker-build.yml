@@ -88,34 +88,62 @@ jobs:
           
           echo "Container ID: $CONTAINER_ID" >> $GITHUB_STEP_SUMMARY
           
-          # Aguarda o container iniciar
+          # Função para limpar container em caso de erro
+          cleanup() {
+            echo "🧹 Limpando container..." >> $GITHUB_STEP_SUMMARY
+            docker stop $CONTAINER_ID 2>/dev/null || true
+            docker rm $CONTAINER_ID 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          
+          # Aguarda o container iniciar e verifica logs
           echo "⏳ Aguardando container iniciar..." >> $GITHUB_STEP_SUMMARY
-          sleep 10
+          for i in {1..30}; do
+            if docker ps --format '{{.ID}}' | grep -q "^${CONTAINER_ID:0:12}"; then
+              # Verifica se o servidor está respondendo
+              if docker logs $CONTAINER_ID 2>&1 | grep -q "Server listening"; then
+                echo "✅ Container iniciado e servidor está ouvindo" >> $GITHUB_STEP_SUMMARY
+                break
+              fi
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ Timeout: Container não iniciou em 30 segundos" >> $GITHUB_STEP_SUMMARY
+              echo "### Logs do Container:" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              docker logs $CONTAINER_ID 2>&1 >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+            sleep 1
+          done
+          
+          # Aguarda mais um pouco para garantir que está pronto
+          sleep 3
           
           # Verifica se o container está rodando
-          if docker ps | grep -q $CONTAINER_ID; then
-            echo "✅ Container está rodando" >> $GITHUB_STEP_SUMMARY
-          else
+          if ! docker ps --format '{{.ID}}' | grep -q "^${CONTAINER_ID:0:12}"; then
             echo "❌ Container não está rodando" >> $GITHUB_STEP_SUMMARY
-            docker logs $CONTAINER_ID >> $GITHUB_STEP_SUMMARY
+            echo "### Logs do Container:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            docker logs $CONTAINER_ID 2>&1 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
           
           # Testa health check
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Health Check" >> $GITHUB_STEP_SUMMARY
-          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health || echo "000")
+          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://localhost:3000/health 2>/dev/null || echo "000")
           if [ "$HEALTH_STATUS" = "200" ]; then
             echo "✅ Health check retornou 200" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Health check falhou (status: $HEALTH_STATUS)" >> $GITHUB_STEP_SUMMARY
-            docker logs $CONTAINER_ID >> $GITHUB_STEP_SUMMARY
+            echo "### Logs do Container:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            docker logs $CONTAINER_ID 2>&1 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          
-          # Para o container
-          docker stop $CONTAINER_ID
-          docker rm $CONTAINER_ID
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Todos os testes do container passaram!" >> $GITHUB_STEP_SUMMARY

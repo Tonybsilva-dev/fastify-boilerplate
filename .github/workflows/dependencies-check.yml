@@ -127,5 +127,4 @@ jobs:
             audit.json
             depcheck.json
           retention-days: 30
-          if-no-files-found: ignore
 
