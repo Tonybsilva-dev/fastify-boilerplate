@@ -28,8 +28,9 @@ COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/package-lock.json* ./
 
-# Instala apenas dependências de produção
-RUN npm ci --only=production && npm cache clean --force
+# Instala apenas dependências de produção (como root antes de mudar usuário)
+# Usa npm install ao invés de npm ci para evitar problemas com package-lock.json
+RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
 
 # Muda para o usuário não-root
 USER appuser

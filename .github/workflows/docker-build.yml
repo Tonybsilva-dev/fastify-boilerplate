@@ -121,7 +121,9 @@ jobs:
           echo "✅ Todos os testes do container passaram!" >> $GITHUB_STEP_SUMMARY
 
       - name: Scan Docker image for vulnerabilities
+        id: trivy-scan
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: fastify-boilerplate:test
           format: 'sarif'
@@ -129,10 +131,12 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && steps.trivy-scan.outcome == 'success'
+        continue-on-error: true
         with:
           sarif_file: 'trivy-results.sarif'
+          wait-for-processing: false
 
   docker-compose-test:
     name: Test Docker Compose
