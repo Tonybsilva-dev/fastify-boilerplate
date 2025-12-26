@@ -245,4 +245,3 @@ describe('createRequestSchema', () => {
 		expect(() => JSON.stringify(result.body)).not.toThrow();
 	});
 });
-

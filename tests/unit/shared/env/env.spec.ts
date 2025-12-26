@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('env validation', () => {
 	const originalEnv = process.env;
@@ -174,4 +174,3 @@ describe('env validation', () => {
 		expect(env.NODE_ENV).toBe('test');
 	});
 });
-

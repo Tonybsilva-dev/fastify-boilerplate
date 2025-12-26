@@ -1,10 +1,10 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError, z } from 'zod';
-import { errorHandler } from '../../../../../src/app/http/middlewares/error-handler';
 import { AppError } from '../../../../../src/app/http/errors/app-error';
-import { ValidationError } from '../../../../../src/app/http/errors/validation-error';
-import { NotFoundError } from '../../../../../src/app/http/errors/not-found-error';
 import { ForbiddenError } from '../../../../../src/app/http/errors/forbidden-error';
+import { NotFoundError } from '../../../../../src/app/http/errors/not-found-error';
+import { ValidationError } from '../../../../../src/app/http/errors/validation-error';
+import { errorHandler } from '../../../../../src/app/http/middlewares/error-handler';
 
 // Mock do env
 vi.mock('../../../../../src/shared/env', () => ({
@@ -260,4 +260,3 @@ describe('errorHandler', () => {
 		expect(mockLogger.warn).toHaveBeenCalled();
 	});
 });
-

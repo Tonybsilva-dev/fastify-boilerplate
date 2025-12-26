@@ -74,4 +74,3 @@ describe('ForbiddenError', () => {
 		expect(json.traceId).toBeUndefined();
 	});
 });
-
