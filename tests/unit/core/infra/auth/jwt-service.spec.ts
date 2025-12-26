@@ -166,12 +166,8 @@ describe('JWTService', () => {
 
 	describe('validate - casos de erro', () => {
 		it('deve rejeitar token com payload inválido (sem userId)', () => {
-			// Cria um token com payload inválido usando outro secret temporário
-			const tempService = new JWTService(
-				'temp-secret-key-that-is-at-least-32-characters-long',
-			);
-			// Gera token e depois modifica manualmente para ter payload inválido
-			// Na prática, isso seria um token de outro sistema
+			// Token com payload inválido (sem userId)
+			// Na prática, isso seria um token de outro sistema ou malformado
 			const invalidToken =
 				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoiVVNFUiJ9.invalid';
 			const result = jwtService.validate(invalidToken);

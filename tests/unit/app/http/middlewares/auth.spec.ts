@@ -156,12 +156,14 @@ describe('createAuthPlugin', () => {
 
 	it('deve permitir usar método authenticate após registro', async () => {
 		const plugin = createAuthPlugin(jwtService);
-		const mockFastify = {
+		// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do Fastify
+		const mockFastify: any = {
+			// biome-ignore lint/complexity/noBannedTypes: Necessário para mock genérico
+			// biome-ignore lint/suspicious/noExplicitAny: Necessário para atribuição dinâmica
 			decorate: vi.fn((name: string, fn: Function) => {
 				(mockFastify as any)[name] = fn;
 			}),
-			// biome-ignore lint/suspicious/noExplicitAny: Necessário para mock do FastifyRequest
-		} as any;
+		};
 
 		await plugin(mockFastify, {});
 
