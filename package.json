@@ -56,7 +56,7 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
-		"@casl/ability": "^6.7.3",
+		"@casl/ability": "^6.7.5",
 		"@fastify/cors": "^11.2.0",
 		"@fastify/helmet": "^13.0.2",
 		"@fastify/rate-limit": "^10.3.0",
